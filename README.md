@@ -1,12 +1,8 @@
-p align="center">
-  <img src="assets/logo.png" alt="Cairn logo" width="96" height="96">
-</p>
-
-<h1 align="center">Cairn</h1>
-  A secure, multi-user personal finance tracker for savings, investments,
-  dividends, and goals.
-</p>
-
+<div align="center">
+<img src="assets/logo.png" alt="Cairn logo" width="96">
+<h1>Cairn</h1>
+<p>A secure, multi-user personal finance tracker for savings, investments, dividends, and goals.</p>
+</div>
 ---
 
 > Not financial advice. Cairn is a personal tracking and modeling tool only. It
