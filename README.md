@@ -1,13 +1,42 @@
-# Cairn
+p align="center">
+  <img src="assets/logo.png" alt="Cairn logo" width="96" height="96">
+</p>
 
-A secure, multi-user personal finance web app for tracking savings,
-investments, dividends, and goals. It is a portfolio tracker meant to replace
-the usual finance spreadsheet and fix the errors that come with one.
+<h1 align="center">Cairn</h1>
+
+<p align="center">
+  A secure, multi-user personal finance tracker for savings, investments,
+  dividends, and goals.
+</p>
+
+---
 
 > Not financial advice. Cairn is a personal tracking and modeling tool only. It
 > does not provide financial, investment, tax, or legal advice and makes no
 > recommendation to buy or sell any security. Projections are hypothetical
 > illustrations and market data may be delayed. All decisions are your own.
+
+## Screenshots
+
+### Dashboard
+
+![Dashboard](assets/screenshots/dashboard.png)
+
+### Financial plan
+
+![Financial plan](assets/screenshots/plan.png)
+
+### Savings and goals
+
+![Savings and goals](assets/screenshots/savings.png)
+
+### Income
+
+![Income](assets/screenshots/income.png)
+
+### Holdings
+
+![Holdings](assets/screenshots/holdings.png)
 
 ## Features
 
@@ -46,7 +75,7 @@ Built for sensitive financial data:
   (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and more).
 - Rate limiting on sign-in, registration, password change, price refresh, and
   market-data lookups.
-- no-store caching on authenticated pages.
+- no-store caching on every page.
 - Account-enumeration-resistant login (constant-time dummy verification).
 - Per-user data isolation enforced in every query.
 
@@ -118,6 +147,7 @@ launcher.py            # desktop/exe entry point (opens browser)
 build_exe.py           # PyInstaller build script (builds in a temp dir)
 import_excel.py        # one-time Excel importer (CLI)
 tests/smoke_test.py    # end-to-end smoke test (Flask test client)
+assets/                # logo, favicon, and screenshots
 app/
   __init__.py          # app factory, security headers, template filters
   db.py                # SQLite schema and versioned migrations
