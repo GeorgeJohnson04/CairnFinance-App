@@ -3,6 +3,7 @@
 <h1>Cairn</h1>
 <p>A secure, multi-user personal finance tracker for savings, investments, dividends, and goals.</p>
 </div>
+
 ---
 
 > Not financial advice. Cairn is a personal tracking and modeling tool only. It
@@ -73,28 +74,81 @@ Built for sensitive financial data:
 - Account-enumeration-resistant login (constant-time dummy verification).
 - Per-user data isolation enforced in every query.
 
-## Quick start (development)
+## Download and run
 
-Requires Python 3.10 or newer.
+Cairn runs **locally on your own machine** — you download the code and start
+it, and your data stays in a file on your computer. Nothing is uploaded
+anywhere.
+
+### 1. Prerequisites
+
+- **Python 3.10 or newer** — https://www.python.org/downloads/
+  (on Windows, tick **"Add Python to PATH"** during installation).
+- **Git** — optional, only needed for the `git clone` method below.
+
+### 2. Get the code
+
+Clone it with Git:
+
+```bash
+git clone https://github.com/GeorgeJohnson04/CairnFinance-App.git
+cd CairnFinance-App
+```
+
+…or, with no Git: on the GitHub page click the green **Code** button →
+**Download ZIP**, then unzip it and open the folder.
+
+### 3. Run it
+
+**Option A — run from source (simplest, works on Windows/macOS/Linux):**
 
 ```bash
 pip install -r requirements.txt
 python run.py
-# open http://127.0.0.1:5000
 ```
 
-## Run the desktop test build (.exe)
+Then open **http://127.0.0.1:5000** in your browser. Press `Ctrl+C` in the
+terminal to stop the server.
+
+**Option B — build a double-click Windows app (.exe):**
 
 ```bash
+pip install -r requirements.txt
 python build_exe.py
-# then double-click dist/Cairn.exe
 ```
 
-The .exe starts a local server, opens your browser, and stores its database in
-a portable Cairn-data folder next to the executable. It always runs at
-http://127.0.0.1:5000 and only one copy runs at a time, so a relaunch always
-shows the current build. This is for local testing only; it uses Flask's
-development server.
+This produces **`dist/Cairn.exe`**. Double-click it — it starts the server,
+opens your browser automatically, and stores its data in a portable
+`Cairn-data` folder next to the executable. It runs at http://127.0.0.1:5000
+and only one copy runs at a time, so relaunching always shows the latest build.
+
+> **Beta testers:** there is **no prebuilt download** attached to the repo —
+> the build output is intentionally not committed — so use **Option A**, or
+> **Option B** to build your own `.exe`. Either way Cairn runs only on your
+> machine via a local server; this is for testing and uses Flask's development
+> server, not a production one.
+
+## Using Cairn (first run)
+
+1. **Create an account.** Open the app, click *Get started*, and register with
+   an email and password. You'll see the no-financial-advice notice; every
+   account is private and isolated from all others.
+2. **Add an account.** Go to *Settings → Add account* (brokerage, retirement,
+   savings, cash…). Holdings live inside accounts.
+3. **Add holdings.** On *Holdings*, click *+ Add holding* and use the live
+   ticker search to pull the current price — or enter any other asset (bonds,
+   real estate, commodities…) and its value manually.
+4. **Log trades.** On *Trade Log*, record buys and sells; your holdings,
+   average cost basis, and realized P&L update automatically.
+5. **Track income.** Log dividends and interest on *Income*.
+6. **Build your plan.** On *Plan*, add your job/income and monthly expenses to
+   see your surplus, savings rate, emergency-fund readiness, and a model
+   investing posture.
+7. **Refresh prices.** Click *Refresh prices* on the dashboard to pull the
+   latest stock, ETF, mutual-fund, and crypto prices.
+
+Want to start with real data instead? See
+[Import the old Excel workbook](#import-the-old-excel-workbook) below.
 
 ## Import the old Excel workbook
 
@@ -175,3 +229,4 @@ charts, no front-end framework). Market data from Yahoo Finance and CoinGecko.
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
