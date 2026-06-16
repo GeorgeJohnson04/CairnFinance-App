@@ -3,8 +3,6 @@ p align="center">
 </p>
 
 <h1 align="center">Cairn</h1>
-
-<p align="center">
   A secure, multi-user personal finance tracker for savings, investments,
   dividends, and goals.
 </p>
