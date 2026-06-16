@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "macros.html" import csrf, icon %}
+{% block title %}Create account - Cairn{% endblock %}
+{% block bodyclass %}auth-body{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <a class="brand auth-brand" href="/">
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt=""
+         width="34" height="34">
+    <span>Cairn</span>
+  </a>
+  <div class="auth-card">
+    <h1>Create your account</h1>
+    <p class="auth-sub">Free, private, and yours alone.</p>
+
+    {% if errors %}
+      <div class="form-errors">
+        {% for e in errors %}<p>{{ e }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {{ csrf() }}
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input class="input" type="text" name="name" value="{{ name }}"
+               required maxlength="80" autocomplete="name" autofocus>
+      </label>
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input class="input" type="email" name="email" value="{{ email }}"
+               required autocomplete="email">
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <div class="pw-wrap">
+          <input class="input" type="password" name="password" required
+                 minlength="10" autocomplete="new-password" id="reg-pw">
+          <button type="button" class="pw-toggle" data-toggle-pw="reg-pw"
+                  aria-label="Show password">{{ icon('eye') }}</button>
+        </div>
+        <span class="field-hint">At least 10 characters with a letter and a
+          number. A passphrase like <i>violet-otter-vault-42</i> works
+          great.</span>
+      </label>
+      <label class="field">
+        <span class="field-label">Confirm password</span>
+        <input class="input" type="password" name="confirm" required
+               autocomplete="new-password">
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">
+        Create account</button>
+    </form>
+    <p class="auth-switch">Already have an account?
+      <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+
+    <div class="auth-disclaimer">
+      <b>No financial advice.</b> By creating an account you acknowledge that
+      Cairn is a personal tracking and modeling tool only. It does
+      <b>not</b> provide financial, investment, tax, or legal advice and makes
+      no recommendation to buy or sell any security. Market data may be
+      delayed and is provided "as is." All decisions are your own.
+    </div>
+  </div>
+</div>
+{% endblock %}

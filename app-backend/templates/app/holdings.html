@@ -1,0 +1,163 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, dialog, icon %}
+{% block title %}Holdings - Cairn{% endblock %}
+{% block page_title %}Holdings{% endblock %}
+{% block page_sub %}<div class="topbar-sub">Your positions across every account.</div>{% endblock %}
+
+{% block topbar_actions %}
+  {% if accounts %}
+  <button class="btn btn-primary btn-sm" data-open="add-holding">+ Add holding</button>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+{% if not accounts %}
+  <div class="card card-pad"><div class="empty">
+    <h3>Add an account first</h3>
+    <p>Holdings live inside accounts. Create one in Settings to get started.</p>
+    <a class="btn btn-primary" href="{{ url_for('portfolio.settings') }}">Go to Settings</a>
+  </div></div>
+{% elif not summary.holdings %}
+  <div class="card card-pad"><div class="empty">
+    <h3>No holdings yet</h3>
+    <p>Add your first stock, ETF, or crypto position. Search a ticker and
+      we'll pull the live price for you.</p>
+    <button class="btn btn-primary" data-open="add-holding">+ Add your first holding</button>
+  </div></div>
+{% else %}
+  <div class="card">
+    <div class="table-wrap"><table class="data">
+      <thead><tr>
+        <th>Asset</th><th>Account</th><th>Type</th>
+        <th class="num">Qty</th><th class="num">Avg cost</th><th class="num">Price</th>
+        <th class="num">Value</th><th class="num">Gain / loss</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for h in summary.holdings %}
+        <tr>
+          <td><div class="ticker-cell">
+            <div class="ticker-badge">{{ h.ticker[:4] }}</div>
+            <div><div class="ticker-name">{{ h.ticker }}</div>
+              <div class="ticker-meta">{{ h.name or '-' }}{% if h.industry %}, {{ h.industry }}{% endif %}</div></div>
+          </div></td>
+          <td>{{ h.account_name }}</td>
+          <td><span class="pill kind">{{ h.asset_type }}</span></td>
+          <td class="num">{{ h.quantity|qty }}</td>
+          <td class="num">{{ h.avg_cost|money }}</td>
+          <td class="num">{{ h.current_price|money }}</td>
+          <td class="num">{{ h.market_value|money }}</td>
+          <td class="num">
+            {{ h.unrealized|signed_money }}<br>
+            <span class="pill {{ 'pos' if h.gl_pct>=0 else 'neg' }}">{{ h.gl_pct|signed_pct }}</span>
+          </td>
+          <td><div class="row-actions">
+            <button class="icon-btn" title="Edit"
+              data-edit-holding='{{ {"id": h.id, "account_id": h.account_id, "asset_type": h.asset_type, "ticker": h.ticker, "name": h.name, "industry": h.industry, "quantity": h.quantity, "avg_cost": h.avg_cost, "current_price": h.current_price}|tojson }}'>{{ icon('edit') }}</button>
+            <form method="post" action="{{ url_for('portfolio.holdings_delete', holding_id=h.id) }}"
+                  onsubmit="return confirm('Remove {{ h.ticker }} from {{ h.account_name }}?')">
+              {{ csrf() }}<button class="icon-btn" title="Delete" type="submit">{{ icon('trash') }}</button>
+            </form>
+          </div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+{% endif %}
+
+{% call dialog('add-holding', 'Add a holding') %}
+  <form method="post" action="{{ url_for('portfolio.holdings_add') }}">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="field full">
+        <span class="field-label">Search ticker (live from Yahoo Finance)</span>
+        <div class="stock-search">
+          <input class="input" type="text" placeholder="e.g. AAPL, Tesla, BTC"
+                 data-stock-search autocomplete="off"
+                 data-target-ticker="#ah-ticker" data-target-name="#ah-name"
+                 data-target-price="#ah-price">
+          <div class="stock-search-results"></div>
+        </div>
+        <div class="quote-preview"></div>
+      </label>
+      <label class="field">
+        <span class="field-label">Account</span>
+        <select class="input" name="account_id" required>
+          {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Asset type</span>
+        <select class="input" name="asset_type">
+          {% for t in asset_types %}<option>{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Ticker</span>
+        <input class="input" name="ticker" id="ah-ticker" required maxlength="20"
+               style="text-transform:uppercase">
+      </label>
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input class="input" name="name" id="ah-name" maxlength="80">
+      </label>
+      <label class="field">
+        <span class="field-label">Industry / sector</span>
+        <input class="input" name="industry" maxlength="60" placeholder="optional">
+      </label>
+      <label class="field">
+        <span class="field-label">Quantity</span>
+        <input class="input" name="quantity" type="number" step="any" min="0" value="0" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Average cost</span>
+        <input class="input" name="avg_cost" type="number" step="any" min="0" value="0" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Current price</span>
+        <input class="input" name="current_price" id="ah-price" type="number" step="any" min="0" value="0" required>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Add holding</button>
+    </div>
+  </form>
+{% endcall %}
+
+{% call dialog('edit-holding', 'Edit holding') %}
+  <form method="post" id="edit-holding-form">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="field">
+        <span class="field-label">Account</span>
+        <select class="input" name="account_id" id="eh-account" required>
+          {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Asset type</span>
+        <select class="input" name="asset_type" id="eh-type">
+          {% for t in asset_types %}<option>{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span class="field-label">Ticker</span>
+        <input class="input" name="ticker" id="eh-ticker" required style="text-transform:uppercase"></label>
+      <label class="field"><span class="field-label">Name</span>
+        <input class="input" name="name" id="eh-name"></label>
+      <label class="field"><span class="field-label">Industry / sector</span>
+        <input class="input" name="industry" id="eh-industry"></label>
+      <label class="field"><span class="field-label">Quantity</span>
+        <input class="input" name="quantity" id="eh-quantity" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Average cost</span>
+        <input class="input" name="avg_cost" id="eh-avg" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Current price</span>
+        <input class="input" name="current_price" id="eh-price" type="number" step="any" min="0" required></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+  </form>
+{% endcall %}
+{% endblock %}

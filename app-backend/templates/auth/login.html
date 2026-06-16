@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "macros.html" import csrf, icon %}
+{% block title %}Sign in - Cairn{% endblock %}
+{% block bodyclass %}auth-body{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <a class="brand auth-brand" href="/">
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt=""
+         width="34" height="34">
+    <span>Cairn</span>
+  </a>
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="auth-sub">Sign in to your account.</p>
+
+    {% if errors %}
+      <div class="form-errors">
+        {% for e in errors %}<p>{{ e }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {{ csrf() }}
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input class="input" type="email" name="email" value="{{ email }}"
+               required autocomplete="email" autofocus>
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <div class="pw-wrap">
+          <input class="input" type="password" name="password" required
+                 autocomplete="current-password" id="login-pw">
+          <button type="button" class="pw-toggle" data-toggle-pw="login-pw"
+                  aria-label="Show password">{{ icon('eye') }}</button>
+        </div>
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+    <p class="auth-switch">New to Cairn?
+      <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+  </div>
+</div>
+{% endblock %}

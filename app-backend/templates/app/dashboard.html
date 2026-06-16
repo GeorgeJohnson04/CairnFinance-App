@@ -1,0 +1,201 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, donut, delta_pct %}
+{% block title %}Dashboard - Cairn{% endblock %}
+{% block page_title %}Welcome back, {{ current_user['name'].split()[0] }}{% endblock %}
+{% block page_sub %}<div class="topbar-sub">An overview of your portfolio.</div>{% endblock %}
+
+{% block topbar_actions %}
+  <div class="segmented">
+    <a href="{{ url_for('portfolio.dashboard') }}"
+       class="{{ 'active' if scope != 'ex-retirement' }}">All accounts</a>
+    <a href="{{ url_for('portfolio.dashboard', scope='ex-retirement') }}"
+       class="{{ 'active' if scope == 'ex-retirement' }}">Excl. retirement</a>
+  </div>
+  <form method="post" action="{{ url_for('portfolio.refresh_prices') }}">
+    {{ csrf() }}
+    <input type="hidden" name="back" value="{{ request.full_path }}">
+    <button class="btn btn-ghost btn-sm" type="submit" title="Pull live prices">
+      Refresh prices</button>
+  </form>
+{% endblock %}
+
+{% block content %}
+{% if not has_accounts %}
+  <div class="card card-pad" style="margin-bottom:1.3rem">
+    <div class="empty" style="padding:1.5rem">
+      <h3>Set up your first account</h3>
+      <p>Add your first account (brokerage, retirement, savings) and start
+        tracking. Already have the Excel workbook? You can import it from the
+        command line; see the README.</p>
+      <a class="btn btn-primary" href="{{ url_for('portfolio.settings') }}">
+        Add an account</a>
+    </div>
+  </div>
+{% endif %}
+
+<div class="grid grid-stats">
+  <div class="stat feature">
+    <div class="stat-label">Total portfolio value</div>
+    <div class="stat-value">{{ summary.total_value|money }}</div>
+    <div class="stat-sub">{{ summary.holdings|selectattr('quantity')|list|length }}
+      holdings across {{ summary.by_account|length }} account(s)</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Unrealized gain / loss</div>
+    <div class="stat-value">{{ summary.unrealized|signed_money }}</div>
+    <div class="stat-sub">{{ delta_pct(summary.unrealized_pct) }} on cost basis</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Realized P&amp;L ({{ year }})</div>
+    <div class="stat-value">{{ stats.realized|signed_money }}</div>
+    <div class="stat-sub">{{ stats.wins }} wins, {{ stats.losses }} losses</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Total return</div>
+    <div class="stat-value">{{ total_return|signed_money }}</div>
+    <div class="stat-sub">Unrealized + realized + income</div>
+  </div>
+</div>
+
+<div class="card card-pad mt">
+  <div class="card-head">
+    <h2>Growth: money earned and lost over time</h2>
+    <span class="muted">Realized P&amp;L plus income, cumulative</span>
+  </div>
+  {% if growth.has_data %}
+    <div class="growth-stats">
+      <div><span class="gs-label">Realized P&amp;L</span>
+        <span class="gs-val">{{ growth.realized_total|signed_money }}</span></div>
+      <div><span class="gs-label">Income collected</span>
+        <span class="gs-val">{{ growth.income_total|signed_money }}</span></div>
+      <div><span class="gs-label">Unrealized (current)</span>
+        <span class="gs-val">{{ growth.current_unrealized|signed_money }}</span></div>
+    </div>
+    <script type="application/json" data-linechart="growth">{{ growth.points|tojson }}</script>
+    <div class="linechart" data-chart="growth"></div>
+  {% else %}
+    <div class="empty">
+      <p>Once you log a few trades or dividends, your growth curve appears
+        here. Import your spreadsheet or log a sell to get started.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div class="grid grid-2-1 mt">
+  <div class="card card-pad">
+    <div class="card-head">
+      <h2>Allocation by asset type</h2>
+      <span class="muted">{{ summary.total_value|money }}</span>
+    </div>
+    {% if summary.by_asset_type %}
+      {{ donut('asset', summary.by_asset_type, 'Total', summary.total_value|money(0)) }}
+    {% else %}
+      <div class="empty"><p>No holdings yet. Add some to see your allocation.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card card-pad">
+    <div class="card-head"><h2>By account</h2></div>
+    {% if summary.by_account %}
+      <div class="alloc-list">
+        {% for a in summary.by_account %}
+          <div class="alloc-row">
+            <div class="alloc-top">
+              <span><b>{{ a.label }}</b></span>
+              <span class="muted">{{ a.value|money }} ({{ a.pct|pct }})</span>
+            </div>
+            <div class="bar"><span style="width:{{ (a.pct*100)|round(1) }}%"></span></div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty"><p>No accounts with holdings yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if summary.by_industry or income.by_type %}
+<div class="grid grid-2 mt">
+  <div class="card card-pad">
+    <div class="card-head"><h2>Allocation by industry</h2></div>
+    {% if summary.by_industry %}
+      {{ donut('industry', summary.by_industry, 'Holdings', summary.total_value|money(0)) }}
+    {% else %}
+      <div class="empty"><p>Tag your holdings with an industry to see this.</p></div>
+    {% endif %}
+  </div>
+  <div class="card card-pad">
+    <div class="card-head"><h2>Income by type ({{ year }})</h2></div>
+    {% if income.by_type %}
+      {{ donut('dash-inc', income.by_type, 'YTD', income.total|money(0)) }}
+    {% else %}
+      <div class="empty"><p>Log dividends &amp; interest to see the breakdown.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="grid grid-2 mt">
+  <div class="card card-pad">
+    <div class="card-head"><h2>Top performers</h2></div>
+    {% if gainers %}
+      <div class="table-wrap"><table class="data">
+        <tbody>
+          {% for h in gainers %}
+          <tr>
+            <td><div class="ticker-cell">
+              <div class="ticker-badge">{{ h.ticker[:4] }}</div>
+              <div><div class="ticker-name">{{ h.ticker }}</div>
+                <div class="ticker-meta">{{ h.account_name }}</div></div>
+            </div></td>
+            <td class="num">{{ h.market_value|money }}</td>
+            <td class="num"><span class="pill {{ 'pos' if h.gl_pct>=0 else 'neg' }}">
+              {{ h.gl_pct|signed_pct }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    {% else %}<div class="empty"><p>Add holdings to see performers.</p></div>{% endif %}
+  </div>
+
+  <div class="card card-pad">
+    <div class="card-head"><h2>Needs attention</h2></div>
+    {% if losers %}
+      <div class="table-wrap"><table class="data">
+        <tbody>
+          {% for h in losers %}
+          <tr>
+            <td><div class="ticker-cell">
+              <div class="ticker-badge">{{ h.ticker[:4] }}</div>
+              <div><div class="ticker-name">{{ h.ticker }}</div>
+                <div class="ticker-meta">{{ h.account_name }}</div></div>
+            </div></td>
+            <td class="num">{{ h.market_value|money }}</td>
+            <td class="num"><span class="pill {{ 'pos' if h.gl_pct>=0 else 'neg' }}">
+              {{ h.gl_pct|signed_pct }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    {% else %}<div class="empty"><p>Nothing to show yet.</p></div>{% endif %}
+  </div>
+</div>
+
+<div class="grid grid-3 mt">
+  <div class="stat">
+    <div class="stat-label">Income YTD ({{ year }})</div>
+    <div class="stat-value">{{ income.total|money }}</div>
+    <div class="stat-sub">Dividends + interest</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Roth / IRA contributed</div>
+    <div class="stat-value">{{ roth.contributed|money(0) }}</div>
+    <div class="stat-sub">{{ roth.remaining|money(0) }} headroom left</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Cost basis</div>
+    <div class="stat-value">{{ summary.total_cost|money(0) }}</div>
+    <div class="stat-sub">What you've put in</div>
+  </div>
+</div>
+{% endblock %}

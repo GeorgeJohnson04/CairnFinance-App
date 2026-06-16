@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}Cairn{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml"
+        href="{{ url_for('static', filename='img/favicon.svg') }}">
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+  {% block body %}{% endblock %}
+
+  <div class="flash-stack" id="flash-stack" aria-live="polite">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <span>{{ message }}</span>
+          <button type="button" class="flash-close"
+                  aria-label="Dismiss">&#10005;</button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}" defer></script>
+</body>
+</html>

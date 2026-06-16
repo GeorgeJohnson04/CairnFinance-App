@@ -1,0 +1,143 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, dialog, icon %}
+{% block title %}Settings - Cairn{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block page_sub %}<div class="topbar-sub">Accounts, security, and your data.</div>{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+  <!-- Accounts -->
+  <div class="card card-pad">
+    <div class="card-head"><h2>Accounts</h2>
+      <button class="btn btn-soft btn-sm" data-open="add-account">+ Add</button></div>
+    {% if accounts %}
+      <div class="table-wrap"><table class="data">
+        <tbody>
+          {% for a in accounts %}
+          <tr>
+            <td><b>{{ a.name }}</b></td>
+            <td><span class="pill kind">{{ a.kind }}</span></td>
+            <td><div class="row-actions">
+              <button class="icon-btn" data-edit-account='{{ {"id": a.id, "name": a.name, "kind": a.kind}|tojson }}'>{{ icon('edit') }}</button>
+              <form method="post" action="{{ url_for('portfolio.accounts_delete', account_id=a.id) }}"
+                    onsubmit="return confirm('Delete {{ a.name }} and ALL its holdings, trades, and income? This cannot be undone.')">
+                {{ csrf() }}<button class="icon-btn" type="submit">{{ icon('trash') }}</button></form>
+            </div></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    {% else %}
+      <div class="empty"><p>No accounts yet. Add your first one to start tracking.</p></div>
+    {% endif %}
+    <p class="muted" style="font-size:.82rem;margin-top:1rem">
+      You have {{ counts.holdings }} holdings, {{ counts.trades }} trades, and
+      {{ counts.incomes }} income entries.</p>
+  </div>
+
+  <!-- Profile + password -->
+  <div class="card card-pad">
+    <div class="card-head"><h2>Profile</h2></div>
+    <form method="post" action="{{ url_for('portfolio.settings_profile') }}">
+      {{ csrf() }}
+      <label class="field"><span class="field-label">Name</span>
+        <input class="input" name="name" value="{{ current_user['name'] }}" required maxlength="80"></label>
+      <label class="field"><span class="field-label">Email</span>
+        <input class="input" value="{{ current_user['email'] }}" disabled></label>
+      <button class="btn btn-primary btn-sm" type="submit">Save profile</button>
+    </form>
+    <hr style="border:none;border-top:1px solid var(--line);margin:1.5rem 0">
+    <div class="card-head"><h3>Change password</h3></div>
+    <form method="post" action="{{ url_for('portfolio.settings_password') }}">
+      {{ csrf() }}
+      <label class="field"><span class="field-label">Current password</span>
+        <input class="input" name="current_password" type="password" required autocomplete="current-password"></label>
+      <label class="field"><span class="field-label">New password</span>
+        <input class="input" name="new_password" type="password" required minlength="10" autocomplete="new-password"></label>
+      <label class="field"><span class="field-label">Confirm new password</span>
+        <input class="input" name="confirm_password" type="password" required autocomplete="new-password"></label>
+      <button class="btn btn-primary btn-sm" type="submit">Change password</button>
+      <p class="field-hint">Changing your password signs out all other sessions.</p>
+    </form>
+  </div>
+</div>
+
+<!-- Sessions -->
+<div class="card card-pad mt">
+  <div class="card-head"><h2>Active sessions</h2>
+    <span class="muted">Sign out anywhere you don't recognize.</span></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Device / browser</th><th>Signed in</th><th>Last active</th><th></th></tr></thead>
+    <tbody>
+      {% for s in sessions %}
+      <tr>
+        <td>{{ s.user_agent[:60] or 'Unknown device' }}{% if s.id == g.session_id %}
+          <span class="pill pos">This device</span>{% endif %}</td>
+        <td class="muted">{{ s.created_at|nicedate }}</td>
+        <td class="muted">{{ s.last_seen|nicedate }}</td>
+        <td><div class="row-actions">
+          {% if s.id != g.session_id %}
+          <form method="post" action="{{ url_for('portfolio.sessions_revoke', session_id=s.id) }}">
+            {{ csrf() }}<button class="btn btn-ghost btn-sm" type="submit">Revoke</button></form>
+          {% endif %}
+        </div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+
+<!-- Danger zone -->
+<div class="card card-pad mt" style="border-color:#f3c9c9">
+  <div class="card-head"><h2 style="color:var(--neg)">Danger zone</h2></div>
+  <p class="muted">Permanently delete your account and every record we hold for
+    you. This cannot be undone.</p>
+  <button class="btn btn-danger btn-sm" data-open="delete-account">Delete my account</button>
+</div>
+
+{% call dialog('add-account', 'Add an account') %}
+  <form method="post" action="{{ url_for('portfolio.accounts_add') }}">
+    {{ csrf() }}
+    <label class="field"><span class="field-label">Account name</span>
+      <input class="input" name="name" required maxlength="60" placeholder="Fidelity, Robinhood, Chase Savings"></label>
+    <label class="field"><span class="field-label">Type</span>
+      <select class="input" name="kind">
+        {% for k in account_kinds %}<option value="{{ k }}">{{ k|capitalize }}</option>{% endfor %}
+      </select></label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Add account</button>
+    </div>
+  </form>
+{% endcall %}
+
+{% call dialog('edit-account', 'Edit account') %}
+  <form method="post" id="edit-account-form">
+    {{ csrf() }}
+    <label class="field"><span class="field-label">Account name</span>
+      <input class="input" name="name" id="ea-name" required maxlength="60"></label>
+    <label class="field"><span class="field-label">Type</span>
+      <select class="input" name="kind" id="ea-kind">
+        {% for k in account_kinds %}<option value="{{ k }}">{{ k|capitalize }}</option>{% endfor %}
+      </select></label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </form>
+{% endcall %}
+
+{% call dialog('delete-account', 'Delete your account') %}
+  <form method="post" action="{{ url_for('portfolio.delete_account') }}">
+    {{ csrf() }}
+    <p class="muted">Type your password to confirm. Everything (accounts,
+      holdings, trades, income, and goals) will be erased permanently.</p>
+    <label class="field"><span class="field-label">Password</span>
+      <input class="input" name="password" type="password" required autocomplete="current-password"></label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-danger" type="submit">Permanently delete</button>
+    </div>
+  </form>
+{% endcall %}
+{% endblock %}

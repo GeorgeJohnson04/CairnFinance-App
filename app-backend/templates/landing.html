@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block bodyclass %}landing-body{% endblock %}
+{% block body %}
+<div class="landing">
+
+  <nav class="land-nav">
+    <a class="brand" href="/">
+      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt=""
+           width="30" height="30">
+      <span>Cairn</span>
+    </a>
+    <div class="land-nav-links">
+      <a href="#features">Features</a>
+      <a href="#security">Security</a>
+    </div>
+    <div class="land-nav-cta">
+      <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Sign in</a>
+      <a class="btn btn-primary" href="{{ url_for('auth.register') }}">
+        Get started free</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <span class="hero-badge">Private personal finance tracking</span>
+      <h1>Every dollar,<br><span class="grad-text">in focus.</span></h1>
+      <p class="hero-sub">
+        Track your savings, investments, dividends, and goals across every
+        brokerage and account you own. Your data stays private to you.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg"
+           href="{{ url_for('auth.register') }}">Create your account</a>
+        <a class="btn btn-ghost btn-lg" href="#features">See what's inside</a>
+      </div>
+      <ul class="trust-strip">
+        <li>Argon2id password hashing</li>
+        <li>Per-user data isolation</li>
+        <li>No trackers, no ads</li>
+      </ul>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="mock-card">
+        <div class="mock-head">
+          <span class="mock-title">Portfolio</span>
+          <span class="mock-pill">Live</span>
+        </div>
+        <div class="mock-value">$24,805.17</div>
+        <div class="mock-delta">+$1,482.06 (+6.4%) all time</div>
+        <svg class="mock-donut" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.9155" fill="none"
+                  stroke="#ede9fe" stroke-width="6"></circle>
+          <circle cx="21" cy="21" r="15.9155" fill="none" stroke="#7c3aed"
+                  stroke-width="6" stroke-dasharray="46 54"
+                  stroke-dashoffset="25" stroke-linecap="round"></circle>
+          <circle cx="21" cy="21" r="15.9155" fill="none" stroke="#a78bfa"
+                  stroke-width="6" stroke-dasharray="27 73"
+                  stroke-dashoffset="79" stroke-linecap="round"></circle>
+          <circle cx="21" cy="21" r="15.9155" fill="none" stroke="#ddd6fe"
+                  stroke-width="6" stroke-dasharray="21 79"
+                  stroke-dashoffset="52" stroke-linecap="round"></circle>
+        </svg>
+        <div class="mock-rows">
+          <div class="mock-row"><i class="dot" style="background:#7c3aed"></i>
+            Stocks &amp; ETFs <b>46%</b></div>
+          <div class="mock-row"><i class="dot" style="background:#a78bfa"></i>
+            Retirement <b>27%</b></div>
+          <div class="mock-row"><i class="dot" style="background:#ddd6fe"></i>
+            Cash &amp; savings <b>21%</b></div>
+        </div>
+      </div>
+      <div class="mock-chip mock-chip-1">Emergency fund 82%</div>
+      <div class="mock-chip mock-chip-2">Dividends YTD $214.36</div>
+    </div>
+  </header>
+
+  <section class="features" id="features">
+    <h2>One place for <span class="grad-text">everything you own</span></h2>
+    <p class="section-sub">Built to replace the spreadsheet, and to fix the
+      formula errors that come with it.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Live portfolio dashboard</h3>
+        <p>Total value, unrealized gains, and allocation by account, asset
+          type, and industry, always kept up to date.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Smart trade log</h3>
+        <p>Log a buy or sell and Cairn updates your holdings, average cost
+          basis, and realized P&amp;L automatically. No hand-typed cost basis,
+          no mistakes.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Dividends and interest</h3>
+        <p>Track every payout by type and account, see income year to date,
+          and watch your total return from price gains plus income.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Savings goals</h3>
+        <p>Set targets for the things that matter and watch the progress bars
+          fill. Emergency fund, a new car, travel, whatever you're saving
+          for.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Roth IRA tracker</h3>
+        <p>Contribution limits tracked across every retirement account
+          combined, so you always know your remaining headroom.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Live prices</h3>
+        <p>One click refreshes stock, ETF, and crypto prices from market data
+          sources. The lookups run server-side, so your browser never talks to
+          third parties.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="security" id="security">
+    <div class="security-card">
+      <div class="security-copy">
+        <h2>Security that protects your data</h2>
+        <ul class="security-list">
+          <li><b>Your eyes only.</b> Every record is bound to your account.
+            Other users can never see your data.</li>
+          <li><b>Argon2id hashing.</b> A modern, memory-hard password
+            algorithm. Your password is never stored anywhere.</li>
+          <li><b>Hardened sessions.</b> HttpOnly, SameSite cookies backed by
+            revocable server-side sessions, so you can sign out everywhere at
+            any time.</li>
+          <li><b>CSRF and strict CSP.</b> Every form is token-protected and a
+            strict Content-Security-Policy blocks injected scripts.</li>
+          <li><b>Rate-limited sign-in.</b> Brute-force attempts are throttled
+            automatically.</li>
+        </ul>
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">
+          Start tracking securely</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="land-footer">
+    <span>&copy; {{ now_year }} Cairn</span>
+    <span>A personal finance tracker. Not financial advice.</span>
+  </footer>
+</div>
+{% endblock %}

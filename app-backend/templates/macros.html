@@ -1,0 +1,129 @@
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro icon(name) -%}
+<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'trash' %}<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+{% elif name == 'edit' %}<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>
+{% elif name == 'eye' %}<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+{% endif %}
+</svg>
+{%- endmacro %}
+
+{% macro field(label, name, type='text', value='', required=False, step=None,
+               placeholder='', autocomplete=None, min=None, max=None) -%}
+<label class="field">
+  <span class="field-label">{{ label }}</span>
+  <input class="input" type="{{ type }}" name="{{ name }}"
+         value="{{ value }}"
+         {% if required %}required{% endif %}
+         {% if step is not none %}step="{{ step }}"{% endif %}
+         {% if min is not none %}min="{{ min }}"{% endif %}
+         {% if max is not none %}max="{{ max }}"{% endif %}
+         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}>
+</label>
+{%- endmacro %}
+
+{% macro select(label, name, options, selected='') -%}
+<label class="field">
+  <span class="field-label">{{ label }}</span>
+  <select class="input" name="{{ name }}">
+    {% for opt in options %}
+      {% if opt is mapping %}
+        <option value="{{ opt.value }}"
+          {% if opt.value|string == selected|string %}selected{% endif %}>
+          {{ opt.label }}</option>
+      {% else %}
+        <option value="{{ opt }}"
+          {% if opt|string == selected|string %}selected{% endif %}>
+          {{ opt }}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+</label>
+{%- endmacro %}
+
+{% macro account_options(accounts) -%}
+  {% set opts = [] %}
+  {% for a in accounts %}
+    {% set _ = opts.append({'value': a['id'], 'label': a['name']}) %}
+  {% endfor %}
+  {{ opts }}
+{%- endmacro %}
+
+{% macro dialog(id, title) -%}
+<dialog id="{{ id }}" class="modal" aria-labelledby="{{ id }}-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="{{ id }}-title">{{ title }}</h3>
+      <button type="button" class="icon-btn" data-close
+              aria-label="Close dialog">&#10005;</button>
+    </div>
+    {{ caller() }}
+  </div>
+</dialog>
+{%- endmacro %}
+
+{% macro delta(value) -%}
+  <span class="delta {{ 'pos' if value > 0 else ('neg' if value < 0 else 'flat') }}">
+    {{- value|signed_money -}}
+  </span>
+{%- endmacro %}
+
+{% macro delta_pct(value) -%}
+  <span class="delta {{ 'pos' if value > 0 else ('neg' if value < 0 else 'flat') }}">
+    {{- value|signed_pct -}}
+  </span>
+{%- endmacro %}
+
+{% macro donut(id, data, center_label, center_value) -%}
+<div class="donut-card-inner">
+  <script type="application/json" data-donut="{{ id }}">{{ data|tojson }}</script>
+  <div class="donut-wrap">
+    <svg class="donut" viewBox="0 0 42 42" data-src="{{ id }}"
+         role="img" aria-label="{{ center_label }} allocation chart"></svg>
+    <div class="donut-center">
+      <span class="donut-center-value">{{ center_value }}</span>
+      <span class="donut-center-label">{{ center_label }}</span>
+    </div>
+  </div>
+  <ul class="donut-legend" data-legend="{{ id }}"></ul>
+</div>
+{%- endmacro %}
+
+{# Semicircle gauge. value is 0..1; center is the big text, label sits below.
+   tone: violet | pos | warn | neg #}
+{% macro gauge(id, value, center, label, tone='violet') -%}
+<div class="gauge-card-inner">
+  <script type="application/json" data-gauge-src="{{ id }}">{{
+    {"value": value, "center": center, "label": label, "tone": tone}|tojson }}</script>
+  <div class="gauge" data-gauge="{{ id }}" role="img"
+       aria-label="{{ label }}: {{ center }}"></div>
+</div>
+{%- endmacro %}
+
+{# Vertical bar chart. points = [{label, value}]. unit: money | plain #}
+{% macro barchart(id, points, unit='money') -%}
+<script type="application/json" data-barchart-src="{{ id }}">{{
+  {"points": points, "unit": unit}|tojson }}</script>
+<div class="barchart" data-barchart="{{ id }}"></div>
+{%- endmacro %}
+
+{# Horizontal 100% flow bar. segments = [{label, value, accent?}] #}
+{% macro flowbar(id, segments, total) -%}
+<script type="application/json" data-flowbar-src="{{ id }}">{{
+  {"segments": segments, "total": total}|tojson }}</script>
+<div class="flowbar" data-flowbar="{{ id }}"></div>
+<ul class="chart-legend flow-legend" data-flowlegend="{{ id }}"></ul>
+{%- endmacro %}
+
+{# Multi-series area/line chart. series = [{name, color, fill, points:[{label,value}]}] #}
+{% macro areachart(id, series) -%}
+<script type="application/json" data-areachart-src="{{ id }}">{{
+  {"series": series}|tojson }}</script>
+<div class="areachart" data-areachart="{{ id }}"></div>
+<ul class="chart-legend area-legend" data-arealegend="{{ id }}"></ul>
+{%- endmacro %}

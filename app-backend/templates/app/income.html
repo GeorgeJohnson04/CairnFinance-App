@@ -1,0 +1,158 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, dialog, donut, barchart, icon %}
+{% block title %}Income - Cairn{% endblock %}
+{% block page_title %}Income{% endblock %}
+{% block page_sub %}<div class="topbar-sub">Salary, dividends, and interest, all your income in one place.</div>{% endblock %}
+
+{% block topbar_actions %}
+  {% if accounts %}<button class="btn btn-primary btn-sm" data-open="add-income">+ Add income</button>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-3">
+  <div class="stat feature">
+    <div class="stat-label">Recurring income</div>
+    <div class="stat-value">{{ recurring_annual|money(0) }}</div>
+    <div class="stat-sub">salary and other, per year</div>
+  </div>
+  <div class="stat"><div class="stat-label">Investment income YTD ({{ year }})</div>
+    <div class="stat-value">{{ summary_ytd.total|money }}</div>
+    <div class="stat-sub">dividends + interest</div></div>
+  <div class="stat"><div class="stat-label">All-time investment income</div>
+    <div class="stat-value">{{ summary_all.total|money }}</div>
+    <div class="stat-sub">since you started tracking</div></div>
+</div>
+
+<div class="grid grid-2-1 mt">
+  <div class="card card-pad">
+    <div class="card-head"><h2>Income mix</h2>
+      <span class="muted">recurring at annual run-rate, investment YTD</span></div>
+    {% if income_mix %}
+      {{ donut('inc-mix', income_mix, 'per year',
+               (income_mix|sum(attribute='value'))|money(0)) }}
+    {% else %}
+      <div class="empty"><p>Add your salary on the
+        <a href="{{ url_for('portfolio.plan') }}">Plan page</a> and log some
+        dividends to see your full income mix.</p></div>
+    {% endif %}
+  </div>
+  <div class="card card-pad">
+    <div class="card-head"><h3>Recurring income</h3>
+      <a class="btn btn-soft btn-sm" href="{{ url_for('portfolio.plan') }}">Manage</a></div>
+    {% if income_sources %}
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Source</th><th class="num">Per month</th></tr></thead>
+        <tbody>
+          {% for s in income_sources %}
+          <tr><td><b>{{ s.name }}</b>
+            <span class="pill kind" style="margin-left:.4rem">{{ s.kind }}</span></td>
+            <td class="num">{{ s.amount|monthly(s.frequency)|money(0) }}</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr><td><b>Total</b></td>
+          <td class="num"><b>{{ recurring_monthly|money(0) }}/mo</b></td></tr></tfoot>
+      </table></div>
+      <p class="muted" style="font-size:.82rem;margin:.9rem 0 0">
+        Salary &amp; recurring income are managed on the Plan page, where they
+        drive your cashflow and savings rate.</p>
+    {% else %}
+      <div class="empty"><p>No salary or recurring income yet.
+        <a href="{{ url_for('portfolio.plan') }}">Add it on the Plan page</a></p></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if monthly.has_data %}
+<div class="card card-pad mt">
+  <div class="card-head"><h2>Investment income by month ({{ year }})</h2>
+    <span class="muted">{{ summary_ytd.total|money(0) }} YTD</span></div>
+  {{ barchart('inc-month', monthly.points) }}
+</div>
+{% endif %}
+
+<div class="grid grid-2 mt">
+  <div class="card card-pad">
+    <div class="card-head"><h2>Investment income by type ({{ year }})</h2></div>
+    {% if summary_ytd.by_type %}
+      {{ donut('inc-type', summary_ytd.by_type, 'YTD', summary_ytd.total|money(0)) }}
+    {% else %}<div class="empty"><p>No dividends or interest recorded for {{ year }} yet.</p></div>{% endif %}
+  </div>
+  <div class="card card-pad">
+    <div class="card-head"><h2>Investment income by account ({{ year }})</h2></div>
+    {% if summary_ytd.by_account %}
+      <div class="alloc-list">
+        {% set amax = (summary_ytd.by_account|map(attribute='value')|max) or 1 %}
+        {% for r in summary_ytd.by_account %}
+          <div class="alloc-row">
+            <div class="alloc-top"><span><b>{{ r.label }}</b></span>
+              <span class="muted">{{ r.value|money }}</span></div>
+            <div class="bar"><span style="width:{{ (r.value/amax*100)|round(1) }}%"></span></div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}<div class="empty"><p>No income recorded for {{ year }} yet.</p></div>{% endif %}
+  </div>
+</div>
+
+<div class="card mt">
+  <div class="card-pad card-head"><h2>Dividend &amp; interest payments</h2></div>
+  {% if incomes %}
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Date</th><th>Account</th><th>Ticker</th><th>Type</th>
+      <th>Description</th><th class="num">Amount</th><th></th></tr></thead>
+    <tbody>
+      {% for i in incomes %}
+      <tr>
+        <td>{{ i.income_date|nicedate }}</td>
+        <td>{{ i.account_name }}</td>
+        <td>{{ i.ticker or '-' }}</td>
+        <td><span class="pill kind">{{ i.type }}</span></td>
+        <td class="muted">{{ i.description or '-' }}</td>
+        <td class="num">{{ i.amount|money }}</td>
+        <td><div class="row-actions">
+          <form method="post" action="{{ url_for('portfolio.income_delete', income_id=i.id) }}"
+                onsubmit="return confirm('Delete this income entry?')">
+            {{ csrf() }}<button class="icon-btn" type="submit">{{ icon('trash') }}</button>
+          </form></div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-pad"><div class="empty">
+    <h3>No income yet</h3>
+    <p>Record dividends and interest as they land to track your total return.</p>
+    {% if accounts %}<button class="btn btn-primary" data-open="add-income">+ Add income</button>
+    {% else %}<a class="btn btn-primary" href="{{ url_for('portfolio.settings') }}">Add an account first</a>{% endif %}
+  </div></div>
+  {% endif %}
+</div>
+
+{% call dialog('add-income', 'Add income') %}
+  <form method="post" action="{{ url_for('portfolio.income_add') }}">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Account</span>
+        <select class="input" name="account_id" required>
+          {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+        </select></label>
+      <label class="field"><span class="field-label">Type</span>
+        <select class="input" name="type">
+          {% for t in income_types %}<option>{{ t }}</option>{% endfor %}
+        </select></label>
+      <label class="field"><span class="field-label">Date</span>
+        <input class="input" name="income_date" type="date" required></label>
+      <label class="field"><span class="field-label">Ticker (optional)</span>
+        <input class="input" name="ticker" maxlength="20" style="text-transform:uppercase"></label>
+      <label class="field"><span class="field-label">Amount</span>
+        <input class="input" name="amount" type="number" step="any" min="0" required></label>
+      <label class="field full"><span class="field-label">Description (optional)</span>
+        <input class="input" name="description" maxlength="200"></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Add income</button>
+    </div>
+  </form>
+{% endcall %}
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, dialog, gauge, barchart, donut, icon %}
+{% block title %}Savings - Cairn{% endblock %}
+{% block page_title %}Savings &amp; Goals{% endblock %}
+{% block page_sub %}<div class="topbar-sub">Cash, goals, and retirement headroom.</div>{% endblock %}
+
+{% block topbar_actions %}
+  <button class="btn btn-primary btn-sm" data-open="add-goal">+ New goal</button>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-3">
+  <div class="stat feature">
+    <div class="stat-label">Cash &amp; money market</div>
+    <div class="stat-value">{{ cash_total|money }}</div>
+    <div class="stat-sub">{{ cash_holdings|length }} cash position(s)</div>
+  </div>
+  <div class="stat"><div class="stat-label">Roth / IRA contributed ({{ year }})</div>
+    <div class="stat-value">{{ roth.contributed|money(0) }}</div>
+    <div class="stat-sub">of {{ roth.limit|money(0) }} limit</div></div>
+  <div class="stat"><div class="stat-label">Contribution headroom</div>
+    <div class="stat-value">{{ roth.remaining|money(0) }}</div>
+    <div class="stat-sub">left to contribute this year</div></div>
+</div>
+
+<h2 class="section-title">Your goals</h2>
+{% if goals %}
+  <div class="grid grid-3">
+    {% for g in goals %}
+      {% set pct = (g.saved_amount / g.target_amount) if g.target_amount else 0 %}
+      <div class="goal">
+        <div class="goal-head">
+          <div>
+            <div class="goal-name">{{ g.name }}</div>
+            {% if g.target_date %}<div class="goal-meta">by {{ g.target_date|nicedate }}</div>{% endif %}
+          </div>
+          <div class="row-actions">
+            <button class="icon-btn" title="Edit"
+              data-edit-goal='{{ {"id": g.id, "name": g.name, "target_amount": g.target_amount, "saved_amount": g.saved_amount, "target_date": g.target_date}|tojson }}'>{{ icon('edit') }}</button>
+            <form method="post" action="{{ url_for('portfolio.goals_delete', goal_id=g.id) }}"
+                  onsubmit="return confirm('Delete goal {{ g.name }}?')">
+              {{ csrf() }}<button class="icon-btn" type="submit">{{ icon('trash') }}</button>
+            </form>
+          </div>
+        </div>
+        <div class="goal-bar {{ 'done' if pct >= 1 }}">
+          <span style="width:{{ [pct*100, 100]|min|round(1) }}%"></span>
+        </div>
+        <div class="goal-foot">
+          <span class="muted">{{ g.saved_amount|money }} / {{ g.target_amount|money }}</span>
+          <span class="pct">{{ pct|pct }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-pad"><div class="empty">
+    <h3>No goals yet</h3>
+    <p>Set a target, like an emergency fund, a house deposit, or a trip, and
+      watch the progress bar fill as you save.</p>
+    <button class="btn btn-primary" data-open="add-goal">+ Create a goal</button>
+  </div></div>
+{% endif %}
+
+{% if goals_saved|length >= 2 %}
+<div class="card card-pad mt">
+  <div class="card-head"><h2>Savings by goal</h2>
+    <span class="muted">across {{ goals_saved|length }} goals</span></div>
+  {{ donut('goals-split', goals_saved, 'Saved',
+           (goals_saved|sum(attribute='value'))|money(0)) }}
+</div>
+{% endif %}
+
+<h2 class="section-title">Retirement contributions ({{ year }})</h2>
+{% set roth_tone = 'pos' if roth.pct >= 1 else 'violet' %}
+<div class="grid grid-2-1">
+  <div class="card card-pad">
+    <div class="gauge-row">
+      {{ gauge('roth', roth.pct, roth.contributed|money(0),
+               'of ' ~ roth.limit|money(0), roth_tone) }}
+    </div>
+    <div class="goal-foot" style="margin-top:.4rem;justify-content:center;gap:1.4rem">
+      <span class="muted">{{ roth.pct|pct(0) }} of limit used</span>
+      <span class="pct">{{ roth.remaining|money(0) }} headroom</span>
+    </div>
+    {% if contrib_series.has_data %}
+      <h3 class="section-title" style="font-size:1rem;margin:1.5rem 0 .4rem">
+        Contributions by month</h3>
+      {{ barchart('contribs', contrib_series.points) }}
+    {% endif %}
+    {% if roth.by_account %}
+      <div class="alloc-list" style="margin-top:1.2rem">
+        {% for r in roth.by_account %}
+          <div class="alloc-top"><span>{{ r.label }}</span><span class="muted">{{ r.value|money }}</span></div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if contributions %}
+      <div class="table-wrap" style="margin-top:1.2rem"><table class="data">
+        <thead><tr><th>Date</th><th>Account</th><th class="num">Amount</th><th></th></tr></thead>
+        <tbody>
+          {% for c in contributions %}
+          <tr><td>{{ c.contrib_date|nicedate }}</td><td>{{ c.account_name }}</td>
+            <td class="num">{{ c.amount|money }}</td>
+            <td><form method="post" action="{{ url_for('portfolio.contributions_delete', contrib_id=c.id) }}">
+              {{ csrf() }}<button class="icon-btn" type="submit">{{ icon('trash') }}</button></form></td></tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    {% endif %}
+  </div>
+  <div class="card card-pad">
+    <div class="card-head"><h3>Log a contribution</h3></div>
+    {% if retirement_accounts %}
+    <form method="post" action="{{ url_for('portfolio.contributions_add') }}">
+      {{ csrf() }}
+      <label class="field"><span class="field-label">Retirement account</span>
+        <select class="input" name="account_id" required>
+          {% for a in retirement_accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+        </select></label>
+      <label class="field"><span class="field-label">Date</span>
+        <input class="input" name="contrib_date" type="date" required></label>
+      <label class="field"><span class="field-label">Amount</span>
+        <input class="input" name="amount" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Note (optional)</span>
+        <input class="input" name="note" maxlength="200"></label>
+      <button class="btn btn-primary btn-block" type="submit">Add contribution</button>
+    </form>
+    <form method="post" action="{{ url_for('portfolio.settings_ira_limit') }}" style="margin-top:1rem">
+      {{ csrf() }}<input type="hidden" name="back" value="savings">
+      <label class="field"><span class="field-label">Annual contribution limit</span>
+        <input class="input" name="ira_limit" type="number" step="any" min="0"
+               value="{{ roth.limit }}"></label>
+      <button class="btn btn-ghost btn-sm btn-block" type="submit">Update limit</button>
+    </form>
+    {% else %}
+      <div class="empty"><p>Mark an account as <b>retirement</b> type in Settings
+        to track contributions here.</p>
+        <a class="btn btn-soft btn-sm" href="{{ url_for('portfolio.settings') }}">Go to Settings</a></div>
+    {% endif %}
+  </div>
+</div>
+
+{% call dialog('add-goal', 'Create a goal') %}
+  <form method="post" action="{{ url_for('portfolio.goals_add') }}">
+    {{ csrf() }}
+    <label class="field"><span class="field-label">Goal name</span>
+      <input class="input" name="name" required maxlength="80" placeholder="Emergency fund"></label>
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Target amount</span>
+        <input class="input" name="target_amount" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Saved so far</span>
+        <input class="input" name="saved_amount" type="number" step="any" min="0" value="0"></label>
+    </div>
+    <label class="field"><span class="field-label">Target date (optional)</span>
+      <input class="input" name="target_date" type="date"></label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Create goal</button>
+    </div>
+  </form>
+{% endcall %}
+
+{% call dialog('edit-goal', 'Edit goal') %}
+  <form method="post" id="edit-goal-form">
+    {{ csrf() }}
+    <label class="field"><span class="field-label">Goal name</span>
+      <input class="input" name="name" id="eg-name" required maxlength="80"></label>
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Target amount</span>
+        <input class="input" name="target_amount" id="eg-target" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Saved so far</span>
+        <input class="input" name="saved_amount" id="eg-saved" type="number" step="any" min="0"></label>
+    </div>
+    <label class="field"><span class="field-label">Target date (optional)</span>
+      <input class="input" name="target_date" id="eg-date" type="date"></label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+  </form>
+{% endcall %}
+{% endblock %}

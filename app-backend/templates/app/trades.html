@@ -1,0 +1,116 @@
+{% extends "app/_shell.html" %}
+{% from "macros.html" import csrf, dialog, icon %}
+{% block title %}Trade Log - Cairn{% endblock %}
+{% block page_title %}Trade Log{% endblock %}
+{% block page_sub %}<div class="topbar-sub">Log a trade and your holdings and cost basis update automatically.</div>{% endblock %}
+
+{% block topbar_actions %}
+  {% if accounts %}<button class="btn btn-primary btn-sm" data-open="add-trade">+ Log trade</button>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-stats" style="grid-template-columns:repeat(4,1fr)">
+  <div class="stat feature">
+    <div class="stat-label">Realized P&amp;L ({{ year }})</div>
+    <div class="stat-value">{{ stats_ytd.realized|signed_money }}</div>
+    <div class="stat-sub">{{ stats_ytd.total }} trades this year</div>
+  </div>
+  <div class="stat"><div class="stat-label">All-time realized</div>
+    <div class="stat-value">{{ stats_all.realized|signed_money }}</div>
+    <div class="stat-sub">{{ stats_all.total }} trades total</div></div>
+  <div class="stat"><div class="stat-label">Winning sells</div>
+    <div class="stat-value">{{ stats_all.wins }}</div>
+    <div class="stat-sub">profitable closes</div></div>
+  <div class="stat"><div class="stat-label">Losing sells</div>
+    <div class="stat-value">{{ stats_all.losses }}</div>
+    <div class="stat-sub">closes below cost</div></div>
+</div>
+
+<div class="card mt">
+  {% if trades %}
+  <div class="table-wrap"><table class="data">
+    <thead><tr>
+      <th>Date</th><th>Ticker</th><th>Account</th><th>Action</th>
+      <th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th>
+      <th class="num">Realized P&amp;L</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for t in trades %}
+      <tr>
+        <td>{{ t.trade_date|nicedate }}</td>
+        <td><div class="ticker-cell"><div class="ticker-badge">{{ t.ticker[:4] }}</div>
+          <div class="ticker-name">{{ t.ticker }}</div></div></td>
+        <td>{{ t.account_name }}</td>
+        <td><span class="pill {{ 'pos' if t.action=='Buy' else 'flat' }}">{{ t.action }}</span></td>
+        <td class="num">{{ t.quantity|qty }}</td>
+        <td class="num">{{ t.price|money }}</td>
+        <td class="num">{{ (t.quantity * t.price)|money }}</td>
+        <td class="num">
+          {% if t.realized_pl is not none %}
+            <span class="pill {{ 'pos' if t.realized_pl>=0 else 'neg' }}">{{ t.realized_pl|signed_money }}</span>
+          {% else %}<span class="muted">-</span>{% endif %}
+        </td>
+        <td><div class="row-actions">
+          <form method="post" action="{{ url_for('portfolio.trades_delete', trade_id=t.id) }}"
+                onsubmit="return confirm('Remove this trade from the log?')">
+            {{ csrf() }}<button class="icon-btn" type="submit" title="Delete">{{ icon('trash') }}</button>
+          </form>
+        </div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-pad"><div class="empty">
+    <h3>No trades logged yet</h3>
+    <p>When you log a buy or sell, Cairn updates the matching holding's
+      quantity, recomputes your average cost, and calculates realized P&amp;L
+      from that cost basis. No manual math.</p>
+    {% if accounts %}<button class="btn btn-primary" data-open="add-trade">+ Log your first trade</button>
+    {% else %}<a class="btn btn-primary" href="{{ url_for('portfolio.settings') }}">Add an account first</a>{% endif %}
+  </div></div>
+  {% endif %}
+</div>
+
+{% call dialog('add-trade', 'Log a trade') %}
+  <form method="post" action="{{ url_for('portfolio.trades_add') }}">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="field full">
+        <span class="field-label">Search ticker (live)</span>
+        <div class="stock-search">
+          <input class="input" type="text" placeholder="Search a symbol or company"
+                 data-stock-search autocomplete="off"
+                 data-target-ticker="#at-ticker" data-target-price="#at-price">
+          <div class="stock-search-results"></div>
+        </div>
+        <div class="quote-preview"></div>
+      </label>
+      <label class="field"><span class="field-label">Account</span>
+        <select class="input" name="account_id" required>
+          {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+        </select></label>
+      <label class="field"><span class="field-label">Asset type</span>
+        <select class="input" name="asset_type">
+          {% for t in asset_types %}<option>{{ t }}</option>{% endfor %}
+        </select></label>
+      <label class="field"><span class="field-label">Ticker</span>
+        <input class="input" name="ticker" id="at-ticker" required style="text-transform:uppercase"></label>
+      <label class="field"><span class="field-label">Action</span>
+        <select class="input" name="action"><option>Buy</option><option>Sell</option></select></label>
+      <label class="field"><span class="field-label">Quantity</span>
+        <input class="input" name="quantity" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Price per unit</span>
+        <input class="input" name="price" id="at-price" type="number" step="any" min="0" required></label>
+      <label class="field"><span class="field-label">Date</span>
+        <input class="input" name="trade_date" type="date" value="{{ now_year }}-01-01" required></label>
+      <label class="field full"><span class="field-label">Note (optional)</span>
+        <input class="input" name="note" maxlength="200"></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Log trade</button>
+    </div>
+  </form>
+{% endcall %}
+{% endblock %}
