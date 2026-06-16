@@ -172,11 +172,6 @@ headers.
 Python, Flask, SQLite, Argon2id, and vanilla JavaScript (hand-rolled SVG
 charts, no front-end framework). Market data from Yahoo Finance and CoinGecko.
 
-## Deployment
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for publishing to a real domain, hardening
-for production, and notes on the app-store path.
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
