@@ -17,9 +17,16 @@
 
 ![Dashboard](assets/screenshots/dashboard.png)
 
+### Dark mode
+
+Cairn follows your system theme and remembers a manual override. Every chart
+repaints with the new palette.
+
+![Dashboard in dark mode](assets/screenshots/dashboard-dark.png)
+
 ### Financial plan
 
-![Financial plan](assets/screenshots/plan.png)
+![Financial plan](assets/screenshots/plan-dark.png)
 
 ### Savings and goals
 
@@ -32,6 +39,15 @@
 ### Holdings
 
 ![Holdings](assets/screenshots/holdings.png)
+
+### On a phone
+
+Installable as a PWA, with a native-style bottom tab bar.
+
+<p>
+  <img src="assets/screenshots/mobile-dashboard-dark.png" alt="Dashboard on mobile" width="260">
+  <img src="assets/screenshots/mobile-plan-dark.png" alt="Plan on mobile" width="260">
+</p>
 
 ## Features
 
@@ -56,6 +72,11 @@
   tracking across all retirement accounts combined.
 - Live price refresh. One click updates stock, ETF, mutual-fund, and crypto
   prices.
+- Dark mode. Follows your system theme, with a manual toggle that persists.
+- Charts that respond. Hover any chart for a tooltip and guide line, sort the
+  holdings table by any column, and watch figures count up as a page loads.
+- Installable. Cairn is a Progressive Web App, so it adds to the home screen on
+  Android and iOS with its own icon and splash screen.
 
 ## Security
 
@@ -122,11 +143,12 @@ opens your browser automatically, and stores its data in a portable
 `Cairn-data` folder next to the executable. It runs at http://127.0.0.1:5000
 and only one copy runs at a time, so relaunching always shows the latest build.
 
-> **Beta testers:** there is **no prebuilt download** attached to the repo —
-> the build output is intentionally not committed — so use **Option A**, or
-> **Option B** to build your own `.exe`. Either way Cairn runs only on your
-> machine via a local server; this is for testing and uses Flask's development
-> server, not a production one.
+> **Beta testers:** a prebuilt Windows build is included in the
+> **`EXE working model`** folder. Download it and double-click
+> `Cairn.exe`, no Python needed. You can also run from source with
+> **Option A**, or build your own with **Option B**. Either way Cairn
+> runs only on your machine via a local server; this is for testing and
+> uses Flask's development server, not a production one.
 
 ## Using Cairn (first run)
 
@@ -149,6 +171,23 @@ and only one copy runs at a time, so relaunching always shows the latest build.
 
 Want to start with real data instead? See
 [Import the old Excel workbook](#import-the-old-excel-workbook) below.
+
+## Mobile (Android and iOS)
+
+Cairn ships as a Progressive Web App, so the quickest way onto a phone needs no
+store at all. Open your deployed Cairn in the browser, then:
+
+- **Android / Chrome:** menu > *Add to Home screen*
+- **iOS / Safari:** Share > *Add to Home Screen*
+
+You get an app icon, a splash screen, and a standalone window with no browser
+chrome.
+
+For the actual app stores, `mobile/` holds a [Capacitor](https://capacitorjs.com/)
+project that wraps Cairn in real Android and iOS apps you can sign and submit.
+Because the backend is Flask, the native shell loads Cairn from a server you
+host, so deploy it first. See [mobile/README.md](mobile/README.md) for the build
+steps, store requirements, and the App Store review caveats.
 
 ## Import the old Excel workbook
 
@@ -195,7 +234,8 @@ launcher.py            # desktop/exe entry point (opens browser)
 build_exe.py           # PyInstaller build script (builds in a temp dir)
 import_excel.py        # one-time Excel importer (CLI)
 tests/smoke_test.py    # end-to-end smoke test (Flask test client)
-assets/                # logo, favicon, and screenshots
+assets/                # logo, favicon, screenshots, and the promo video
+mobile/                # Capacitor project: native Android and iOS shells
 app/
   __init__.py          # app factory, security headers, template filters
   db.py                # SQLite schema and versioned migrations
@@ -208,6 +248,8 @@ app/
     prices.py          # Yahoo/CoinGecko search, quotes, bulk refresh
     importer.py        # Excel import with the corrections above
   static/js/charts.js  # hand-rolled SVG charts (donut, bar, gauge, area, flow)
+  static/js/theme.js   # applies the saved or system theme before first paint
+  static/js/sw.js      # service worker (PWA app shell cache)
   templates/  static/  # Jinja templates and the white/purple design
 ```
 
@@ -226,7 +268,8 @@ headers.
 Python, Flask, SQLite, Argon2id, and vanilla JavaScript (hand-rolled SVG
 charts, no front-end framework). Market data from Yahoo Finance and CoinGecko.
 
-## License
+## Deployment
 
-MIT. See [LICENSE](LICENSE).
+See [DEPLOYMENT.md](DEPLOYMENT.md) for publishing to a real domain, hardening
+for production, and notes on the app-store path.
 
