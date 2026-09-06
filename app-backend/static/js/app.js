@@ -196,4 +196,96 @@
 
     input.addEventListener("blur", function () { setTimeout(close, 150); });
   });
+
+  // =================================================== THEME TOGGLE
+  var REDUCED = !!(window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  }
+  function paintToggle() {
+    var dark = currentTheme() === "dark";
+    document.querySelectorAll("[data-theme-toggle]").forEach(function (b) {
+      var lbl = b.querySelector("[data-theme-label]");
+      if (lbl) lbl.textContent = dark ? "Light mode" : "Dark mode";
+      var sun = b.querySelector(".ic-sun"), moon = b.querySelector(".ic-moon");
+      if (sun) sun.hidden = !dark;
+      if (moon) moon.hidden = dark;
+    });
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#0e0a1c" : "#7c3aed");
+  }
+  document.querySelectorAll("[data-theme-toggle]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("cairn-theme", next); } catch (e) {}
+      paintToggle();
+      if (window.cairnRenderCharts) window.cairnRenderCharts();
+    });
+  });
+  paintToggle();
+
+  // =================================================== COUNT-UP NUMBERS
+  // Big stat values tick up from zero on load. The final text is restored
+  // verbatim so formatting (currency, sign, decimals, %) is never altered.
+  function countUp(el) {
+    var txt = el.textContent.trim();
+    var m = txt.match(/^([+\-]?)(\$?)([\d,]+)(?:\.(\d+))?(%?)$/);
+    if (!m) return;
+    var sign = m[1], cur = m[2], dec = m[4] || "", pct = m[5];
+    var target = parseFloat(m[3].replace(/,/g, "") + (dec ? "." + dec : ""));
+    if (!isFinite(target) || target === 0) return;
+    var decimals = dec.length, start = null, dur = 900;
+    function fmt(v) {
+      return sign + cur + v.toLocaleString(undefined,
+        { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + pct;
+    }
+    function step(t) {
+      if (start === null) start = t;
+      var p = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * e);
+      if (p < 1) requestAnimationFrame(step); else el.textContent = txt;
+    }
+    requestAnimationFrame(step);
+  }
+  if (!REDUCED) document.querySelectorAll(".stat-value, .gs-val").forEach(countUp);
+
+  // =================================================== SORTABLE TABLES
+  document.querySelectorAll("table.data.sortable").forEach(function (table) {
+    var ths = table.querySelectorAll("th[data-sort]");
+    ths.forEach(function (th) {
+      th.addEventListener("click", function () {
+        var col = Array.prototype.indexOf.call(th.parentNode.children, th);
+        var type = th.getAttribute("data-sort");
+        var asc = !th.classList.contains("asc");
+        ths.forEach(function (o) { o.classList.remove("asc", "desc"); });
+        th.classList.add(asc ? "asc" : "desc");
+        var tbody = table.tBodies[0];
+        var rows = Array.prototype.slice.call(tbody.rows);
+        function val(r) {
+          var c = r.cells[col], t = c ? c.textContent.trim() : "";
+          if (type === "num") {
+            var n = parseFloat(t.replace(/[^0-9.\-]/g, ""));
+            return isNaN(n) ? -Infinity : n;
+          }
+          return t.toLowerCase();
+        }
+        rows.sort(function (a, b) {
+          var va = val(a), vb = val(b);
+          if (va < vb) return asc ? -1 : 1;
+          if (va > vb) return asc ? 1 : -1;
+          return 0;
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+  });
+
+  // =================================================== PWA SERVICE WORKER
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  }
 })();

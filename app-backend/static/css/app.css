@@ -46,15 +46,75 @@
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
   --maxw: 1240px;
+
+  /* surfaces that used to be hardcoded, so dark mode can restyle them */
+  --input-bg:   #ffffff;
+  --topbar-bg:  rgba(250,248,255,.85);
+  --feature-bg: radial-gradient(circle at 90% -30%, rgba(168,85,247,.55), transparent 55%), #1a1430;
+  --chart-grid:  #f1ecfd;
+  --chart-zero:  #c4b5fd;
+  --chart-track: #efeafb;
+  --chart-empty: #ece8f7;
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------- dark theme
+   theme.js sets data-theme on <html> from the saved choice or the
+   system preference, so a single override block is all we need. */
+:root[data-theme="dark"] {
+  --violet-50:  rgba(139,92,246,.10);
+  --violet-100: rgba(139,92,246,.18);
+  --violet-200: rgba(167,139,250,.30);
+  --violet-300: #8b6cf0;
+  --violet-600: #a07cff;
+  --violet-700: #b794ff;
+  --violet-800: #cbb2ff;
+
+  --ink-900: #f4f1ff;
+  --ink-700: #d9d3ee;
+  --ink-500: #aca3c8;
+  --ink-400: #8f87ab;
+  --ink-300: #635a86;
+
+  --bg:        #0e0a1c;
+  --surface:   #171130;
+  --line:      #2b2347;
+  --line-soft: #221b3c;
+
+  --pos-bg: rgba(16,185,129,.16);
+  --neg-bg: rgba(239,68,68,.16);
+  --grad-soft: linear-gradient(135deg, #1a1336 0%, #1f1540 100%);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.25);
+  --shadow:    0 4px 16px rgba(0,0,0,.4), 0 1px 4px rgba(0,0,0,.3);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,.55);
+
+  --input-bg:   #1d1636;
+  --topbar-bg:  rgba(14,10,28,.82);
+  --feature-bg: radial-gradient(circle at 90% -30%, rgba(232,121,249,.35), transparent 55%),
+                linear-gradient(135deg, #3b1d8f 0%, #5b21b6 55%, #7e22ce 100%);
+  --chart-grid:  #2a2245;
+  --chart-zero:  #5b4a99;
+  --chart-track: #2a2245;
+  --chart-empty: #2a2245;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+/* Cairn is a light-themed app. Force a light color scheme and a solid
+   canvas at the root so an OS/browser dark-mode setting never shows through
+   pages whose background is an (image-only) gradient. */
+:root { color-scheme: light; }
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+  background-color: var(--bg);
+}
 body {
   margin: 0;
   font-family: var(--font);
   color: var(--ink-900);
-  background: var(--bg);
+  background-color: var(--bg);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -84,7 +144,7 @@ button { font-family: inherit; cursor: pointer; }
 .btn:active { transform: translateY(1px); }
 .btn-primary { background: var(--grad); color: #fff; box-shadow: var(--shadow-violet); }
 .btn-primary:hover { color: #fff; box-shadow: 0 12px 34px rgba(124,58,237,.42); transform: translateY(-1px); }
-.btn-ghost { background: #fff; color: var(--violet-700); border-color: var(--line); box-shadow: var(--shadow-sm); }
+.btn-ghost { background: var(--surface); color: var(--violet-700); border-color: var(--line); box-shadow: var(--shadow-sm); }
 .btn-ghost:hover { border-color: var(--violet-300); background: var(--violet-50); }
 .btn-soft { background: var(--violet-100); color: var(--violet-700); }
 .btn-soft:hover { background: var(--violet-200); color: var(--violet-800); }
@@ -205,7 +265,7 @@ button { font-family: inherit; cursor: pointer; }
 /* security band */
 .security { max-width: var(--maxw); margin: 0 auto 4rem; padding: 0 1.5rem; }
 .security-card {
-  background: var(--ink-900);
+  background-color: #1a1430;
   background-image: radial-gradient(circle at 85% -20%, rgba(168,85,247,.4), transparent 45%),
                     radial-gradient(circle at 5% 120%, rgba(124,58,237,.35), transparent 40%);
   border-radius: var(--r-xl); padding: 3.2rem; color: #fff;
@@ -228,9 +288,12 @@ button { font-family: inherit; cursor: pointer; }
 /* ====================================================== AUTH */
 .auth-body {
   min-height: 100vh;
-  background: var(--grad-soft);
-  background-image: radial-gradient(circle at 12% 18%, rgba(196,181,253,.35), transparent 38%),
-                    radial-gradient(circle at 88% 82%, rgba(216,180,254,.32), transparent 42%);
+  /* opaque light base + glow layers, so the gradient image can never
+     uncover the page canvas (was the dark-mode bleed source) */
+  background-color: var(--violet-50);
+  background-image: radial-gradient(circle at 12% 18%, rgba(196,181,253,.45), transparent 40%),
+                    radial-gradient(circle at 88% 82%, rgba(216,180,254,.42), transparent 44%),
+                    linear-gradient(135deg, #f6f4ff 0%, #faf5ff 100%);
 }
 .auth-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 2rem 1.25rem; gap: 1.6rem; }
@@ -258,7 +321,7 @@ button { font-family: inherit; cursor: pointer; }
 .input {
   width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm);
   padding: .68rem .85rem; font-size: .95rem; color: var(--ink-900);
-  background: #fff; transition: border-color .15s ease, box-shadow .15s ease; font-family: inherit;
+  background: var(--input-bg); transition: border-color .15s ease, box-shadow .15s ease; font-family: inherit;
 }
 .input:focus { outline: none; border-color: var(--violet-400); box-shadow: 0 0 0 4px rgba(167,139,250,.18); }
 select.input { appearance: none; background-image:
@@ -311,7 +374,7 @@ select.input { appearance: none; background-image:
 .main { min-width: 0; display: flex; flex-direction: column; }
 .topbar {
   display: flex; align-items: center; gap: 1rem; padding: 1.3rem 2rem;
-  position: sticky; top: 0; background: rgba(250,248,255,.85); backdrop-filter: blur(10px);
+  position: sticky; top: 0; background: var(--topbar-bg); backdrop-filter: blur(10px);
   z-index: 20; border-bottom: 1px solid var(--line-soft);
 }
 .topbar h1 { font-size: 1.5rem; }
@@ -324,7 +387,7 @@ select.input { appearance: none; background-image:
 .segmented { display: inline-flex; background: var(--violet-50); border: 1px solid var(--line);
   border-radius: 999px; padding: 3px; }
 .segmented a { padding: .38rem .95rem; border-radius: 999px; font-size: .85rem; font-weight: 600; color: var(--ink-500); }
-.segmented a.active { background: #fff; color: var(--violet-700); box-shadow: var(--shadow-sm); }
+.segmented a.active { background: var(--surface); color: var(--violet-700); box-shadow: var(--shadow-sm); }
 
 /* ----------------------------------------------------- cards */
 .card {
@@ -348,8 +411,7 @@ select.input { appearance: none; background-image:
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
   padding: 1.3rem 1.4rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
 }
-.stat.feature { background: var(--ink-900);
-  background-image: radial-gradient(circle at 90% -30%, rgba(168,85,247,.55), transparent 55%); color: #fff; }
+.stat.feature { background: var(--feature-bg); color: #fff; }
 .stat.feature .stat-label { color: rgba(255,255,255,.7); }
 .stat-label { font-size: .82rem; color: var(--ink-400); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .stat-value { font-size: 1.85rem; font-weight: 800; margin: .45rem 0 .2rem; letter-spacing: -.03em; }
@@ -511,7 +573,7 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border: none;
 .stock-search { position: relative; }
 .stock-search-results {
   position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50;
-  background: #fff; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm);
   box-shadow: var(--shadow-lg); max-height: 320px; overflow-y: auto; display: none;
 }
 .stock-search-results.open { display: block; }
@@ -535,7 +597,7 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border: none;
 .flash-stack { position: fixed; top: 1.2rem; right: 1.2rem; z-index: 200; display: grid; gap: .6rem; max-width: 380px; }
 .flash {
   display: flex; align-items: flex-start; gap: .8rem; padding: .85rem 1rem;
-  border-radius: var(--r-sm); box-shadow: var(--shadow-lg); background: #fff;
+  border-radius: var(--r-sm); box-shadow: var(--shadow-lg); background: var(--surface);
   border-left: 4px solid var(--violet-500); font-size: .9rem; color: var(--ink-700);
   animation: flash-in .3s ease;
 }
@@ -548,10 +610,53 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border: none;
 
 /* error page */
 .error-page { min-height: 100vh; display: grid; place-items: center; background: var(--grad-soft); padding: 2rem; }
-.error-card { text-align: center; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg);
+.error-card { text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
   padding: 3rem; box-shadow: var(--shadow-lg); max-width: 420px; }
 .error-code { font-size: 4.5rem; font-weight: 800; }
 .error-card p { color: var(--ink-500); margin: .5rem 0 1.8rem; }
+
+/* ------------------------------------------ v2 polish: motion + QoL */
+.card { transition: box-shadow .2s ease, border-color .2s ease; }
+.card:hover { box-shadow: var(--shadow); border-color: var(--violet-200); }
+.stat { transition: box-shadow .2s ease, transform .2s ease; }
+.stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+/* theme toggle (sidebar) */
+.theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
+.theme-toggle .ic { width: 16px; height: 16px; }
+
+/* chart hover tooltip + guide line */
+.barchart, .areachart, .linechart { position: relative; }
+.chart-tip {
+  position: absolute; pointer-events: none; z-index: 5; display: none;
+  background: var(--ink-900); color: var(--bg); font-size: .8rem; font-weight: 700;
+  padding: .4rem .65rem; border-radius: 8px; box-shadow: var(--shadow);
+  white-space: pre-line; line-height: 1.35; transform: translate(-50%, calc(-100% - 10px));
+}
+.chart-tip .tip-l { display: block; font-weight: 500; opacity: .75; font-size: .72rem; }
+.chart-tip.show { display: block; }
+.chart-guide { stroke: var(--chart-zero); stroke-width: 1; stroke-dasharray: 3 3; }
+.barchart-svg rect.bar { transform-box: fill-box; transform-origin: bottom;
+  transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .2s ease; cursor: pointer; }
+.barchart-svg rect.bar:hover { opacity: .8; }
+.gauge-svg path.gauge-val-arc { transition: stroke-dasharray .9s cubic-bezier(.2,.7,.2,1); }
+.gauge-svg circle.gauge-dot { transition: opacity .4s ease .7s; }
+.linechart-svg path, .areachart-svg path { transition: none; }
+
+/* sortable tables */
+table.data.sortable th[data-sort] { cursor: pointer; user-select: none; white-space: nowrap; }
+table.data.sortable th[data-sort]:hover { color: var(--violet-700); }
+table.data.sortable th[data-sort]::after { content: "\2195"; opacity: .35; margin-left: .35rem; font-size: .8em; }
+table.data.sortable th[data-sort].asc::after { content: "\2191"; opacity: 1; }
+table.data.sortable th[data-sort].desc::after { content: "\2193"; opacity: 1; }
+
+/* bottom tab bar (shown on mobile only) */
+.bottom-nav { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .stat, .barchart-svg rect.bar, .donut circle, .gauge-svg path,
+  .gauge-svg circle { transition: none !important; }
+}
 
 /* ------------------------------------------------ responsive */
 @media (max-width: 980px) {
@@ -571,8 +676,25 @@ input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border: none;
   .nav-scrim { position: fixed; inset: 0; background: rgba(26,20,48,.4); z-index: 90; display: none; }
   .app-shell.nav-open .nav-scrim { display: block; }
   .menu-btn { display: inline-flex; }
-  .content { padding: 1.2rem; }
-  .topbar { padding: 1rem 1.2rem; }
+  .content { padding: 1.2rem 1.2rem 5.8rem; }
+  /* title on one row with the menu button; actions wrap onto their own row */
+  .topbar { padding: .9rem 1.2rem; flex-wrap: wrap; row-gap: .6rem; }
+  .topbar h1 { font-size: 1.25rem; }
+  .topbar > div:not(.topbar-actions) { flex: 1; min-width: 0; }
+  .topbar-actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding: .35rem .5rem calc(.35rem + env(safe-area-inset-bottom));
+    justify-content: space-around; box-shadow: 0 -6px 20px rgba(0,0,0,.06);
+  }
+  .bn-item {
+    display: flex; flex-direction: column; align-items: center; gap: .15rem;
+    color: var(--ink-400); font-size: .68rem; font-weight: 600;
+    padding: .35rem .6rem; border-radius: 10px; min-width: 56px;
+  }
+  .bn-item svg { width: 22px; height: 22px; stroke: currentColor; }
+  .bn-item.active { color: var(--violet-700); background: var(--violet-50); }
 }
 @media (max-width: 560px) {
   .feature-grid, .grid-stats { grid-template-columns: 1fr; }

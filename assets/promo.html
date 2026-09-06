@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box;
+      font-family: "Segoe UI", -apple-system, system-ui, Roboto, sans-serif; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: #0d0a18; }
+  #stage { position: relative; width: 1280px; height: 720px; overflow: hidden;
+    background: radial-gradient(circle at 80% -10%, rgba(168,85,247,.35), transparent 55%),
+                radial-gradient(circle at 0% 120%, rgba(124,58,237,.3), transparent 45%), #0d0a18; }
+
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease;
+    display: flex; align-items: center; justify-content: center; }
+  .scene.active { opacity: 1; }
+  .scene.active .inner { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+  .center { text-align: center; color: #fff; padding: 0 90px; }
+  .kicker { font-size: 22px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    color: #c4b5fd; margin-bottom: 22px; }
+  .big { font-size: 64px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; color: #fff; }
+  .sub { font-size: 28px; color: #cdc6e6; margin-top: 22px; font-weight: 400; }
+  .grad { background: linear-gradient(120deg,#a78bfa,#e879f9); -webkit-background-clip: text;
+    background-clip: text; color: transparent; }
+  .logo-lockup { display: flex; align-items: center; justify-content: center; gap: 22px; margin-bottom: 10px; }
+  .logo-lockup img { width: 96px; height: 96px; display: block; }
+  .logo-lockup span { font-size: 72px; font-weight: 800; color: #fff; letter-spacing: -.03em; }
+
+  .shot { background: #0d0a18; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .shot.active img { animation: ken 4.2s ease-out both; }
+  @keyframes ken { from { transform: scale(1.0); } to { transform: scale(1.09); } }
+  .shade { position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(13,10,24,.55) 0%, transparent 22%, transparent 55%, rgba(13,10,24,.92) 100%); }
+  .caption { position: absolute; left: 60px; bottom: 70px; color: #fff; }
+  .scene.active .caption { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+  .caption .ct { font-size: 44px; font-weight: 800; letter-spacing: -.02em; }
+  .caption .cs { font-size: 25px; color: #d8d2ec; margin-top: 8px; font-weight: 400; }
+  .tag { position: absolute; top: 54px; left: 60px; display: flex; align-items: center; gap: 12px; }
+  .tag img { width: 40px; height: 40px; }
+  .tag span { color: #fff; font-weight: 700; font-size: 26px; letter-spacing: -.02em; }
+
+  .phone-row { display: flex; align-items: center; gap: 80px; }
+  .phone-frame { width: 290px; height: 628px; border-radius: 42px; border: 10px solid #2a2245;
+    overflow: hidden; background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.6); flex: none; }
+  .phone-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .phone-copy { text-align: left; color: #fff; }
+  .phone-copy .big { font-size: 58px; }
+
+  .pills { display: flex; gap: 14px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,.08); border: 1px solid rgba(196,181,253,.4);
+    color: #ede9fe; font-size: 21px; font-weight: 600; padding: 12px 22px; border-radius: 999px; }
+
+  #prog { position: absolute; left: 0; bottom: 0; height: 5px; width: 0;
+    background: linear-gradient(90deg,#7c3aed,#c026d3); animation: grow 35s linear forwards; z-index: 9; }
+  @keyframes grow { from { width: 0; } to { width: 100%; } }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div class="scene" data-dur="3000">
+    <div class="inner center">
+      <div class="logo-lockup"><img src="logo.png" alt=""><span>Cairn</span></div>
+      <div class="sub">Your portfolio, private and beautiful.</div>
+    </div>
+  </div>
+
+  <div class="scene" data-dur="2400">
+    <div class="inner center">
+      <div class="big">Tired of clunky<br><span class="grad">finance dashboards?</span></div>
+    </div>
+  </div>
+
+  <div class="scene shot" data-dur="3400">
+    <img src="screenshots/dashboard.png" alt="">
+    <div class="shade"></div>
+    <div class="tag"><img src="logo.png" alt=""><span>Cairn</span></div>
+    <div class="caption"><div class="ct">Your whole portfolio, at a glance</div>
+      <div class="cs">Total value, gains, and growth over time</div></div>
+  </div>
+
+  <div class="scene shot" data-dur="3200">
+    <img src="screenshots/holdings.png" alt="">
+    <div class="shade"></div>
+    <div class="caption"><div class="ct">Every asset in one place</div>
+      <div class="cs">Stocks, ETFs, crypto, bonds, and more</div></div>
+  </div>
+
+  <div class="scene shot" data-dur="3200">
+    <img src="screenshots/income.png" alt="">
+    <div class="shade"></div>
+    <div class="caption"><div class="ct">All of your income</div>
+      <div class="cs">Salary, dividends, and interest together</div></div>
+  </div>
+
+  <div class="scene shot" data-dur="3200">
+    <img src="screenshots/plan.png" alt="">
+    <div class="shade"></div>
+    <div class="caption"><div class="ct">Plan your money</div>
+      <div class="cs">Cashflow, savings rate, and projections</div></div>
+  </div>
+
+  <div class="scene shot" data-dur="3000">
+    <img src="screenshots/savings.png" alt="">
+    <div class="shade"></div>
+    <div class="caption"><div class="ct">Reach your goals</div>
+      <div class="cs">Savings goals and retirement tracking</div></div>
+  </div>
+
+  <div class="scene shot" data-dur="3400">
+    <img src="screenshots/dashboard-dark.png" alt="">
+    <div class="shade"></div>
+    <div class="caption"><div class="ct">Dark mode, built in</div>
+      <div class="cs">Easy on the eyes, day or night</div></div>
+  </div>
+
+  <div class="scene" data-dur="3800">
+    <div class="inner phone-row">
+      <div class="phone-frame"><img src="screenshots/mobile-dashboard-dark.png" alt=""></div>
+      <div class="phone-copy">
+        <div class="kicker">Android and iOS</div>
+        <div class="big">Take it<br><span class="grad">anywhere</span></div>
+        <div class="sub">Installs like a native app.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene" data-dur="2800">
+    <div class="inner center">
+      <div class="kicker">Private by design</div>
+      <div class="big">Runs <span class="grad">100% on your device</span></div>
+      <div class="pills"><span class="pill">Argon2id hashing</span><span class="pill">Per-user isolation</span><span class="pill">CSRF + strict CSP</span></div>
+    </div>
+  </div>
+
+  <div class="scene" data-dur="3400">
+    <div class="inner center">
+      <div class="logo-lockup"><img src="logo.png" alt=""><span>Cairn</span></div>
+      <div class="big" style="font-size:40px;margin-top:6px">Free and open source</div>
+      <div class="sub">github.com/georgejohnson04</div>
+    </div>
+  </div>
+
+  <div id="prog"></div>
+</div>
+
+<script>
+  var scenes = Array.prototype.slice.call(document.querySelectorAll('.scene'));
+  var i = 0;
+  function play() {
+    scenes.forEach(function (s) { s.classList.remove('active'); });
+    var s = scenes[i];
+    s.classList.add('active');
+    var d = parseInt(s.getAttribute('data-dur'), 10) || 3000;
+    i = (i + 1) % scenes.length;
+    setTimeout(play, d);
+  }
+  play();
+</script>
+</body>
+</html>

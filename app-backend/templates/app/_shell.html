@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import csrf %}
+{% from "macros.html" import csrf, icon %}
 
 {% set nav_items = [
   ('portfolio.dashboard', 'Dashboard', 'grid'),
@@ -50,6 +50,11 @@
           <div class="user-chip-email">{{ current_user['email'] }}</div>
         </div>
       </div>
+      <button type="button" class="btn btn-ghost btn-sm btn-block theme-toggle"
+              data-theme-toggle style="margin-top:.5rem" aria-label="Toggle dark mode">
+        <span class="ic-sun" hidden>{{ icon('sun') }}</span><span class="ic-moon">{{ icon('moon') }}</span>
+        <span data-theme-label>Dark mode</span>
+      </button>
       <form method="post" action="{{ url_for('auth.logout') }}" style="margin-top:.5rem">
         {{ csrf() }}
         <button class="btn btn-ghost btn-sm btn-block" type="submit">Sign out</button>
@@ -78,5 +83,17 @@
       or sell any security. Market data may be delayed.
     </p>
   </div>
+
+  <nav class="bottom-nav" aria-label="Primary">
+    {% for endpoint, label, icon_name in [
+        ('portfolio.dashboard', 'Home', 'grid'),
+        ('portfolio.holdings', 'Holdings', 'layers'),
+        ('portfolio.income', 'Income', 'gift'),
+        ('portfolio.plan', 'Plan', 'compass'),
+        ('portfolio.savings', 'Savings', 'target')] %}
+      <a class="bn-item {{ 'active' if request.endpoint == endpoint }}"
+         href="{{ url_for(endpoint) }}">{{ navicon(icon_name) }}<span>{{ label }}</span></a>
+    {% endfor %}
+  </nav>
 </div>
 {% endblock %}

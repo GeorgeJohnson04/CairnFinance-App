@@ -4,7 +4,8 @@ import secrets
 import sys
 from datetime import datetime
 
-from flask import Flask, g, render_template, request, session
+from flask import (Flask, g, render_template, request, send_from_directory,
+                   session)
 
 
 def _frozen() -> bool:
@@ -88,6 +89,21 @@ def create_app() -> Flask:
     from .portfolio import bp as portfolio_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(portfolio_bp)
+
+    # ---------- PWA: manifest + service worker served from the root so the
+    # worker's scope covers the whole app (needed for "Add to Home Screen").
+    @app.route("/manifest.webmanifest")
+    def manifest():
+        resp = send_from_directory(app.static_folder, "manifest.webmanifest")
+        resp.headers["Content-Type"] = "application/manifest+json"
+        return resp
+
+    @app.route("/sw.js")
+    def service_worker():
+        resp = send_from_directory(app.static_folder, "js/sw.js")
+        resp.headers["Content-Type"] = "application/javascript"
+        resp.headers["Service-Worker-Allowed"] = "/"
+        return resp
 
     # ---------- template filters ----------
     @app.template_filter("money")

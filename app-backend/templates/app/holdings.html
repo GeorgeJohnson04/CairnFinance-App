@@ -26,11 +26,12 @@
   </div></div>
 {% else %}
   <div class="card">
-    <div class="table-wrap"><table class="data">
+    <div class="table-wrap"><table class="data sortable">
       <thead><tr>
-        <th>Asset</th><th>Account</th><th>Type</th>
-        <th class="num">Qty</th><th class="num">Avg cost</th><th class="num">Price</th>
-        <th class="num">Value</th><th class="num">Gain / loss</th><th></th>
+        <th data-sort="text">Asset</th><th data-sort="text">Account</th><th data-sort="text">Type</th>
+        <th class="num" data-sort="num">Qty</th><th class="num" data-sort="num">Avg cost</th>
+        <th class="num" data-sort="num">Price</th>
+        <th class="num" data-sort="num">Value</th><th class="num" data-sort="num">Gain / loss</th><th></th>
       </tr></thead>
       <tbody>
         {% for h in summary.holdings %}

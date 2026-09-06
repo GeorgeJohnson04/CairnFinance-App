@@ -5,17 +5,12 @@
       <stop offset="0.5" stop-color="#a855f7"/>
       <stop offset="1" stop-color="#c026d3"/>
     </linearGradient>
-    <linearGradient id="cairnStone" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#ede9fe"/>
-    </linearGradient>
   </defs>
   <rect x="3" y="3" width="42" height="42" rx="13" fill="url(#cairnBg)"/>
-  <!-- stacked, balanced stones: a cairn -->
-  <g fill="url(#cairnStone)">
-    <ellipse cx="24"   cy="35.6" rx="11.4" ry="3.7"/>
-    <ellipse cx="22.5" cy="29.2" rx="9"    ry="3.3"/>
-    <ellipse cx="25"   cy="23.3" rx="6.7"  ry="2.9"/>
-    <ellipse cx="23.4" cy="18"   rx="4.2"  ry="2.4"/>
+  <!-- balance mark: a modern, geometric cairn -->
+  <g fill="#ffffff">
+    <rect x="14" y="30" width="20" height="7" rx="3.5"/>
+    <rect x="17" y="21.5" width="14" height="6" rx="3"/>
+    <circle cx="24" cy="15" r="4"/>
   </g>
 </svg>
