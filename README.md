@@ -1,130 +1,275 @@
-# Cairn for Android and iOS
+<div align="center">
+<img src="assets/logo.png" alt="Cairn logo" width="96">
+<h1>Cairn</h1>
+<p>A secure, multi-user personal finance tracker for savings, investments, dividends, and goals.</p>
+</div>
 
-This folder is the native shell for Cairn, built with
-[Capacitor](https://capacitorjs.com/). It wraps the Cairn web app in a real
-Android and iOS project you can sign and submit to Google Play and the App
-Store.
+---
 
-## How this works (read this first)
+> Not financial advice. Cairn is a personal tracking and modeling tool only. It
+> does not provide financial, investment, tax, or legal advice and makes no
+> recommendation to buy or sell any security. Projections are hypothetical
+> illustrations and market data may be delayed. All decisions are your own.
 
-Cairn's backend is Python and Flask. A phone cannot run that server inside the
-app, so the native shell **loads Cairn from a server you host**. The flow is:
+## Screenshots
 
-```
-[ iOS / Android app ]  ->  https://your-domain.com  ->  [ Flask + SQLite ]
-```
+### Dashboard
 
-Two consequences worth understanding before you invest in the store path:
+![Dashboard](assets/screenshots/dashboard.png)
 
-1. **You need to deploy the server first.** See `DEPLOYMENT.md` in the project
-   root. The mobile app is unusable without a reachable HTTPS URL.
-2. **The "runs only on your device" promise changes.** On desktop the .exe
-   keeps everything local. Once phones connect to a shared server, that server
-   holds the data. Say this accurately in your store listing and privacy
-   policy, or you will have a problem at review time.
+### Dark mode
 
-## Prerequisites
+Cairn follows your system theme and remembers a manual override. Every chart
+repaints with the new palette.
 
-| Target | You need | Cost |
-|---|---|---|
-| Android | Android Studio (includes the SDK and an emulator) | Google Play: $25 one time |
-| iOS | A **Mac** with Xcode and CocoaPods | Apple Developer: $99 per year |
+![Dashboard in dark mode](assets/screenshots/dashboard-dark.png)
 
-iOS cannot be built on Windows. The `ios/` project in this folder is valid and
-version-controlled, but you must open and build it on a Mac.
+### Financial plan
 
-## Point the app at your server
+![Financial plan](assets/screenshots/plan-dark.png)
 
-The server URL is read from an environment variable at sync time, so you never
-hardcode it:
+### Savings and goals
 
-```powershell
-# Windows PowerShell
-$env:CAIRN_SERVER_URL = "https://app.yourdomain.com"
-npx cap sync
-```
+![Savings and goals](assets/screenshots/savings.png)
+
+### Income
+
+![Income](assets/screenshots/income.png)
+
+### Holdings
+
+![Holdings](assets/screenshots/holdings.png)
+
+### On a phone
+
+Installable as a PWA, with a native-style bottom tab bar.
+
+<p>
+  <img src="assets/screenshots/mobile-dashboard-dark.png" alt="Dashboard on mobile" width="260">
+  <img src="assets/screenshots/mobile-plan-dark.png" alt="Plan on mobile" width="260">
+</p>
+
+## Features
+
+- Private accounts. Each person signs up and sees only their own data.
+  Isolation is enforced at the database-query layer.
+- Dashboard. Total value, unrealized and realized P&L, total return, and
+  allocation by account, asset type, and industry, with charts.
+- Growth chart. An area chart of cumulative money earned or lost (realized P&L
+  plus income) over time.
+- All-asset portfolio. Stocks, ETFs, mutual funds, crypto, bonds, options, real
+  estate, commodities, cash, and anything else.
+- Live ticker search. Type a symbol or company name to get live results and the
+  current price from Yahoo Finance, fetched server-side.
+- Trade log. Log a buy or sell and your holdings, average cost basis, and
+  realized P&L update automatically.
+- Income tracker. Dividends and interest by type and account, with income year
+  to date, shown alongside your recurring (salary) income.
+- Financial plan. Add your job and expenses to see surplus, savings rate,
+  emergency-fund readiness, a model investing posture (Aggressive through
+  Capital Preservation) with a stock/bond/cash split, and growth projections.
+- Savings and goals. Progress bars for goals plus Roth/IRA contribution
+  tracking across all retirement accounts combined.
+- Live price refresh. One click updates stock, ETF, mutual-fund, and crypto
+  prices.
+- Dark mode. Follows your system theme, with a manual toggle that persists.
+- Charts that respond. Hover any chart for a tooltip and guide line, sort the
+  holdings table by any column, and watch figures count up as a page loads.
+- Installable. Cairn is a Progressive Web App, so it adds to the home screen on
+  Android and iOS with its own icon and splash screen.
+
+## Security
+
+Built for sensitive financial data:
+
+- Argon2id password hashing (memory-hard, tuned parameters).
+- Database-backed, revocable sessions. HttpOnly and SameSite cookies; only a
+  SHA-256 hash of the session token is stored, so a leaked database cannot be
+  replayed.
+- CSRF tokens and same-origin checks on every mutating request.
+- A strict Content-Security-Policy and a full set of security headers
+  (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and more).
+- Rate limiting on sign-in, registration, password change, price refresh, and
+  market-data lookups.
+- no-store caching on every page.
+- Account-enumeration-resistant login (constant-time dummy verification).
+- Per-user data isolation enforced in every query.
+
+## Download and run
+
+Cairn runs **locally on your own machine** — you download the code and start
+it, and your data stays in a file on your computer. Nothing is uploaded
+anywhere.
+
+### 1. Prerequisites
+
+- **Python 3.10 or newer** — https://www.python.org/downloads/
+  (on Windows, tick **"Add Python to PATH"** during installation).
+- **Git** — optional, only needed for the `git clone` method below.
+
+### 2. Get the code
+
+Clone it with Git:
 
 ```bash
-# macOS / Linux
-export CAIRN_SERVER_URL=https://app.yourdomain.com
-npx cap sync
+git clone https://github.com/GeorgeJohnson04/CairnFinance-App.git
+cd CairnFinance-App
 ```
 
-If you leave it unset, the app targets `http://10.0.2.2:5000`, which is how the
-Android emulator reaches the dev server running on your computer. That is for
-development only. Production builds must use HTTPS, otherwise the session
-cookie (marked `Secure`) will not persist and logins will silently fail.
+…or, with no Git: on the GitHub page click the green **Code** button →
+**Download ZIP**, then unzip it and open the folder.
 
-## Build and run
+### 3. Run it
+
+**Option A — run from source (simplest, works on Windows/macOS/Linux):**
 
 ```bash
-npm install
-npx cap sync            # copies config + web assets into the native projects
-npm run open:android    # opens Android Studio
-npm run open:ios        # opens Xcode (Mac only)
+pip install -r requirements.txt
+python run.py
 ```
 
-From Android Studio: **Run** to test on an emulator or device, then
-**Build > Generate Signed Bundle / APK > Android App Bundle (.aab)** for Play.
+Then open **http://127.0.0.1:5000** in your browser. Press `Ctrl+C` in the
+terminal to stop the server.
 
-From Xcode: pick a simulator to test, then **Product > Archive** and use the
-Organizer to upload to App Store Connect.
-
-## App icons and splash screens
-
-Source art lives in `assets/` (`icon.png`, `splash.png`, `splash-dark.png`),
-generated from the Cairn logo. Regenerate every platform-specific size with:
+**Option B — build a double-click Windows app (.exe):**
 
 ```bash
-npm run icons
+pip install -r requirements.txt
+python build_exe.py
 ```
 
-That rewrites the icon and splash sets inside `android/` and `ios/`.
+This produces **`dist/Cairn.exe`**. Double-click it — it starts the server,
+opens your browser automatically, and stores its data in a portable
+`Cairn-data` folder next to the executable. It runs at http://127.0.0.1:5000
+and only one copy runs at a time, so relaunching always shows the latest build.
 
-## Store submission checklist
+> **Beta testers:** a prebuilt Windows build is included in the
+> **`EXE working model`** folder. Download it and double-click
+> `Cairn.exe`, no Python needed. You can also run from source with
+> **Option A**, or build your own with **Option B**. Either way Cairn
+> runs only on your machine via a local server; this is for testing and
+> uses Flask's development server, not a production one.
 
-Both stores require these for a finance app:
+## Using Cairn (first run)
 
-- [ ] A reachable **privacy policy URL**, stating what you collect, where it is
-      stored, and that you do not sell data. Both stores reject finance apps
-      without one.
-- [ ] Google Play **Data safety** form filled in (declare account data and
-      financial info, and whether it is encrypted in transit).
-- [ ] Apple **App Privacy** questionnaire in App Store Connect.
-- [ ] Screenshots at the required sizes (Play: phone plus 7in and 10in tablet;
-      Apple: 6.7in and 6.5in iPhone at minimum).
-- [ ] The "not financial advice" disclaimer visible in the app and in the
-      listing description. Cairn already shows it on every page.
-- [ ] Account deletion available in-app. Apple requires this for any app with
-      accounts. Cairn has it under Settings > Danger zone.
+1. **Create an account.** Open the app, click *Get started*, and register with
+   an email and password. You'll see the no-financial-advice notice; every
+   account is private and isolated from all others.
+2. **Add an account.** Go to *Settings → Add account* (brokerage, retirement,
+   savings, cash…). Holdings live inside accounts.
+3. **Add holdings.** On *Holdings*, click *+ Add holding* and use the live
+   ticker search to pull the current price — or enter any other asset (bonds,
+   real estate, commodities…) and its value manually.
+4. **Log trades.** On *Trade Log*, record buys and sells; your holdings,
+   average cost basis, and realized P&L update automatically.
+5. **Track income.** Log dividends and interest on *Income*.
+6. **Build your plan.** On *Plan*, add your job/income and monthly expenses to
+   see your surplus, savings rate, emergency-fund readiness, and a model
+   investing posture.
+7. **Refresh prices.** Click *Refresh prices* on the dashboard to pull the
+   latest stock, ETF, mutual-fund, and crypto prices.
 
-## The main App Store risk, stated plainly
+Want to start with real data instead? See
+[Import the old Excel workbook](#import-the-old-excel-workbook) below.
 
-Apple **App Review Guideline 4.2 (Minimum Functionality)** rejects apps that
-are essentially a website in a native wrapper. A Capacitor shell that only
-loads a URL is exactly the shape reviewers look for. Google Play is far more
-permissive here; Apple is not.
+## Mobile (Android and iOS)
 
-To reduce the risk, add capabilities a website cannot provide. In rough order
-of effort to payoff:
+Cairn ships as a Progressive Web App, so the quickest way onto a phone needs no
+store at all. Open your deployed Cairn in the browser, then:
 
-1. **Biometric unlock** (Face ID / fingerprint) before showing the portfolio.
-   Cheap to add, very obviously native, and a natural fit for a finance app.
-2. **Offline caching** so the last dashboard renders without a connection.
-3. **Push notifications**, for example a monthly "log your dividends" nudge.
-4. **A home screen widget** showing total portfolio value.
+- **Android / Chrome:** menu > *Add to Home screen*
+- **iOS / Safari:** Share > *Add to Home Screen*
 
-Adding at least biometric unlock before submitting to Apple is strongly
-recommended. Google Play should accept the current build as is.
+You get an app icon, a splash screen, and a standalone window with no browser
+chrome.
 
-## Cheaper alternative: install it as a PWA
+For the actual app stores, `mobile/` holds a [Capacitor](https://capacitorjs.com/)
+project that wraps Cairn in real Android and iOS apps you can sign and submit.
+Because the backend is Flask, the native shell loads Cairn from a server you
+host, so deploy it first. See [mobile/README.md](mobile/README.md) for the build
+steps, store requirements, and the App Store review caveats.
 
-Cairn is already a Progressive Web App. Anyone can install it from the browser
-with no store, no fees, and no review:
+## Import the old Excel workbook
 
-- **Android / Chrome:** open the site, then menu > *Add to Home screen*.
-- **iOS / Safari:** open the site, then Share > *Add to Home Screen*.
+Bring in a Finance Project.xlsx, with its known spreadsheet errors corrected on
+the way in:
 
-That gives a home screen icon, a splash screen, and a standalone window with no
-browser chrome. It is the fastest way to have Cairn on a phone, and it is worth
-shipping first while you decide whether the store path is worth the cost.
+```bash
+python import_excel.py --file "path/to/Finance Project.xlsx" \
+    --email you@example.com --create --name "Your Name"
+```
+
+Corrections applied during import:
+
+1. Account names are trimmed, so "Fidelity " becomes "Fidelity" and totals
+   never silently drop rows the way the spreadsheet's SUMPRODUCT did.
+2. Asset types are normalized (the trade log had XLE as a Stock; it is an ETF).
+3. Money-market trades with a missing price default to $1.00 per share.
+4. Realized P&L is recomputed consistently for every sell.
+5. Every account is included in every breakdown. The Excel dashboard left
+   Robinhood Roth IRA out of its by-account and income summaries.
+6. "Without retirement" totals are derived from each account's type, fixing the
+   W/O ROTH formula that excluded the Fidelity CMA.
+7. Roth contributions and the annual limit become structured records instead of
+   hardcoded cells.
+
+## How the planner works
+
+The plan is an illustrative model, not advice. It:
+
+- normalizes every income source and expense to a monthly figure;
+- computes surplus, savings rate, and emergency-fund readiness (target is
+  monthly expenses times your chosen number of months);
+- derives a target equity weight from the classic "120 minus age" rule of
+  thumb, adjusted by your self-reported risk tolerance (1 to 5);
+- maps that to a posture label and a stocks/bonds/cash split;
+- projects illustrative 10, 20, and 30 year growth of the suggested monthly
+  investment at a blended expected return.
+
+## Project layout
+
+```
+run.py                 # dev entry point
+launcher.py            # desktop/exe entry point (opens browser)
+build_exe.py           # PyInstaller build script (builds in a temp dir)
+import_excel.py        # one-time Excel importer (CLI)
+tests/smoke_test.py    # end-to-end smoke test (Flask test client)
+assets/                # logo, favicon, screenshots, and the promo video
+mobile/                # Capacitor project: native Android and iOS shells
+app/
+  __init__.py          # app factory, security headers, template filters
+  db.py                # SQLite schema and versioned migrations
+  security.py          # Argon2, sessions, CSRF, rate limiting, validators
+  auth.py              # register / login / logout
+  portfolio.py         # app pages and JSON market-data endpoints
+  services/
+    compute.py         # portfolio math: cost basis, P&L, aggregations, growth
+    planning.py        # cashflow and model investing posture
+    prices.py          # Yahoo/CoinGecko search, quotes, bulk refresh
+    importer.py        # Excel import with the corrections above
+  static/js/charts.js  # hand-rolled SVG charts (donut, bar, gauge, area, flow)
+  static/js/theme.js   # applies the saved or system theme before first paint
+  static/js/sw.js      # service worker (PWA app shell cache)
+  templates/  static/  # Jinja templates and the white/purple design
+```
+
+## Tests
+
+```bash
+python tests/smoke_test.py
+```
+
+Covers registration, login, CSRF rejection, per-user data isolation, cross-user
+access (404), holdings/trades/income/plan flows, the growth chart, and security
+headers.
+
+## Tech
+
+Python, Flask, SQLite, Argon2id, and vanilla JavaScript (hand-rolled SVG
+charts, no front-end framework). Market data from Yahoo Finance and CoinGecko.
+
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for publishing to a real domain, hardening
+for production, and notes on the app-store path.
+

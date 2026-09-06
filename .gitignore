@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Flask instance data (DB + secret key). Never commit.
+instance/
+*.db
+*.db-wal
+*.db-shm
+secret.key
+
+# App data folders created by the desktop build
+Cairn-data/
+**/Cairn-data/
+
+# PyInstaller build artifacts
+build/
+*.spec
+
+# Keep the working test build (dist/Cairn.exe) but not its runtime data
+dist/*
+!dist/Cairn.exe
+
+# Local tooling, editor, and secrets
+.claude/
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
