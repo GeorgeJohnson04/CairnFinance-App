@@ -1,0 +1,24 @@
+{
+  "name": "cairn-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native Android and iOS shell for Cairn, built with Capacitor.",
+  "scripts": {
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "icons": "capacitor-assets generate --iconBackgroundColor #7c3aed --iconBackgroundColorDark #0e0a1c --splashBackgroundColor #faf8ff --splashBackgroundColorDark #0e0a1c"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
+    "typescript": "^5.6.0"
+  }
+}
